@@ -173,3 +173,35 @@ nav a:hover {
     gap: 20px;
   }
 }
+
+.news-item {
+  background-color: #1e1e1e;
+  border-left: 4px solid #e50914;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 4px;
+}
+.event-item {
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+}
+.positions-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 40px;
+}
+.positions-section th, .positions-section td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+.positions-section th {
+  color: #e50914;
+  font-weight: bold;
+  background-color: #1a1a1a;
+}
+.positions-section tr:nth-child(1) td { font-weight: bold; color: gold; }
+.positions-section tr:nth-child(2) td { color: silver; }
+.positions-section tr:nth-child(3) td { color: #cd7f32; }
