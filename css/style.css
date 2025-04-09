@@ -96,6 +96,74 @@ nav a:hover {
   font-weight: bold;
 }
 
+.news-section {
+  background-color: #1a1a1a;
+  padding: 60px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.news-section h3 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #fff;
+}
+
+.news-item {
+  margin-bottom: 30px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 20px;
+}
+
+.news-item h4 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #e50914;
+}
+
+.news-item .date {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.news-item p {
+  font-size: 16px;
+  color: #ccc;
+}
+
+.calendar-section {
+  background-color: #000;
+  padding: 60px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.calendar-section h3 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #fff;
+}
+
+.event-item {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 15px;
+}
+
+.event-item h4 {
+  color: #e50914;
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.event-item .event-date {
+  font-size: 14px;
+  color: #ccc;
+}
+
 @media (max-width: 768px) {
   .hero h2 {
     font-size: 32px;
