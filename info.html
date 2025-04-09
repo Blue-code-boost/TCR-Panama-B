@@ -1,18 +1,112 @@
+
 <!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><title>Info</title><link rel="stylesheet" href="css/style.css"></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Información - TCR Panamá</title>
+  <link rel="stylesheet" href="css/style-info.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #111;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #e50914;
+    }
+
+    .info-section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+
+    .info-section h2 {
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .info-block {
+      background-color: #1a1a1a;
+      border-left: 4px solid #e50914;
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 30px;
+    }
+
+    .info-block h3 {
+      margin-top: 0;
+      color: #e50914;
+    }
+
+    .info-block p {
+      color: #ccc;
+    }
+  </style>
+</head>
 <body>
-<header>
-  <h1>Info</h1>
-  <nav>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="teams.html">Teams</a></li>
-      <li><a href="info.html">Info</a></li>
-      <li><a href="gallery.html">Gallery</a></li>
-      <li><a href="blog.html">Blog</a></li>
-    </ul>
-  </nav>
-</header>
-<main style="text-align:center; padding:40px;">Información general del campeonato.</main>
-</body></html>
+  <header>
+    <h1>TCR Panamá</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="teams.html">Teams</a></li>
+        <li><a href="info.html">Info</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="info-section">
+    <h2>Acerca del Campeonato</h2>
+
+    <div class="info-block">
+      <h3>¿Qué es TCR?</h3>
+      <p>TCR es una plataforma global de carreras de turismos, que permite a diferentes marcas competir bajo un mismo reglamento técnico. En Panamá, el campeonato traerá emoción, tecnología y competitividad.</p>
+    </div>
+
+    <div class="info-block">
+      <h3>Objetivo del Campeonato</h3>
+      <p>Impulsar el automovilismo deportivo en la región, brindar un espectáculo familiar y posicionar a Panamá como sede clave en el calendario internacional de TCR.</p>
+    </div>
+
+    <div class="info-block">
+      <h3>Marcas Participantes</h3>
+      <p>Hyundai, Honda, Toyota, Audi, entre otras. Estas marcas competirán con modelos preparados especialmente bajo las normas TCR, asegurando igualdad y emoción en cada carrera.</p>
+    </div>
+  </section>
+</body>
+</html>

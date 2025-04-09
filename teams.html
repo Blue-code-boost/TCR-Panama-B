@@ -1,18 +1,122 @@
+
 <!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><title>Teams</title><link rel="stylesheet" href="css/style.css"></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipos y Pilotos - TCR Panamá</title>
+  <link rel="stylesheet" href="css/style-team.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #111;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #e50914;
+    }
+
+    .teams-section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+
+    .teams-section h2 {
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .team-card {
+      background-color: #1a1a1a;
+      border-left: 4px solid #e50914;
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .team-card h3 {
+      margin-top: 0;
+      color: #e50914;
+    }
+
+    .team-card p {
+      margin: 5px 0;
+      color: #ccc;
+    }
+  </style>
+</head>
 <body>
-<header>
-  <h1>Teams</h1>
-  <nav>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="teams.html">Teams</a></li>
-      <li><a href="info.html">Info</a></li>
-      <li><a href="gallery.html">Gallery</a></li>
-      <li><a href="blog.html">Blog</a></li>
-    </ul>
-  </nav>
-</header>
-<main style="text-align:center; padding:40px;">Contenido de equipos y pilotos próximamente.</main>
-</body></html>
+  <header>
+    <h1>TCR Panamá</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="teams.html">Teams</a></li>
+        <li><a href="info.html">Info</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="teams-section">
+    <h2>Equipos y Pilotos</h2>
+
+    <div class="team-card">
+      <h3>Racing Panamá</h3>
+      <p><strong>Piloto:</strong> Juan Pérez</p>
+      <p><strong>Auto:</strong> Hyundai Elantra N TCR</p>
+    </div>
+
+    <div class="team-card">
+      <h3>Turbo Team</h3>
+      <p><strong>Piloto:</strong> Luis Gómez</p>
+      <p><strong>Auto:</strong> Honda Civic Type R</p>
+    </div>
+
+    <div class="team-card">
+      <h3>Nippon Motors</h3>
+      <p><strong>Piloto:</strong> Akira Tanaka</p>
+      <p><strong>Auto:</strong> Toyota Corolla TCR</p>
+    </div>
+
+    <div class="team-card">
+      <h3>Chiriquí Racing</h3>
+      <p><strong>Piloto:</strong> Carlos Méndez</p>
+      <p><strong>Auto:</strong> Audi RS3 LMS</p>
+    </div>
+  </section>
+</body>
+</html>
