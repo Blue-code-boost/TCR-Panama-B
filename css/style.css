@@ -205,3 +205,45 @@ nav a:hover {
 .positions-section tr:nth-child(1) td { font-weight: bold; color: gold; }
 .positions-section tr:nth-child(2) td { color: silver; }
 .positions-section tr:nth-child(3) td { color: #cd7f32; }
+
+.positions-section {
+  padding: 60px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.positions-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 40px;
+}
+
+.positions-section th, .positions-section td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.positions-section th {
+  color: #e50914;
+  font-weight: bold;
+  background-color: #1a1a1a;
+}
+
+.positions-section tr:nth-child(1) td { font-weight: bold; color: gold; }
+.positions-section tr:nth-child(2) td { color: silver; }
+.positions-section tr:nth-child(3) td { color: #cd7f32; }
+
+.result-date {
+  margin-bottom: 20px;
+}
+
+.result-date h4 {
+  color: #e50914;
+  font-size: 20px;
+}
+
+.result-date p {
+  font-size: 14px;
+  color: #ccc;
+}
