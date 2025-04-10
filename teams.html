@@ -2,131 +2,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Equipos y Pilotos - TCR Panamá</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/style-footer.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background-color: #000;
-      color: #fff;
-      font-family: 'Roboto', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #111;
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 {
-      font-size: 24px;
-      font-weight: bold;
-    }
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 20px;
-    }
-    nav a {
-      color: #fff;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-    nav a:hover {
-      color: #e50914;
-    }
-    .teams-section {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 60px 20px;
-    }
-    .teams-section h2 {
-      font-size: 28px;
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .team-card {
-      background-color: #1a1a1a;
-      border-left: 4px solid #e50914;
-      padding: 20px;
-      border-radius: 4px;
-      margin-bottom: 20px;
-    }
-    .team-card img {
-      width: 100%;
-      max-width: 300px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-    }
-    .team-card h3 {
-      margin-top: 0;
-      color: #e50914;
-    }
-    .team-card p {
-      margin: 5px 0;
-      color: #ccc;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equipos - TCR Panamá</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style-footer.css" />
+  <link rel="stylesheet" href="css/style-team.css" />  <!-- Vinculando el nuevo CSS de equipos -->
 </head>
 <body>
   <header>
-    <h1>TCR Panamá</h1>
+    <h1>TCR Panamá - Equipos</h1>
     <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="teams.html">Teams</a></li>
-        <li><a href="info.html">Info</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-        <li><a href="blog.html">Blog</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <section class="teams-section">
-    <h2>Equipos y Pilotos</h2>
-
-    <div class="team-card">
-      <img src="img/pilotos/juan-perez.jpg" alt="Juan Pérez">
-      <h3>Racing Panamá</h3>
-      <p><strong>Piloto:</strong> Juan Pérez</p>
-      <p><strong>Auto:</strong> Hyundai Elantra N TCR</p>
-    </div>
-
-    <div class="team-card">
-      <img src="img/pilotos/luis-gomez.jpg" alt="Luis Gómez">
-      <h3>Turbo Team</h3>
-      <p><strong>Piloto:</strong> Luis Gómez</p>
-      <p><strong>Auto:</strong> Honda Civic Type R</p>
-    </div>
-
-    <div class="team-card">
-      <img src="img/pilotos/akira-tanaka.jpg" alt="Akira Tanaka">
-      <h3>Nippon Motors</h3>
-      <p><strong>Piloto:</strong> Akira Tanaka</p>
-      <p><strong>Auto:</strong> Toyota Corolla TCR</p>
-    </div>
-
-    <div class="team-card">
-      <img src="img/pilotos/juan-perez.jpg" alt="Carlos Méndez">
-      <h3>Chiriquí Racing</h3>
-      <p><strong>Piloto:</strong> Carlos Méndez</p>
-      <p><strong>Auto:</strong> Audi RS3 LMS</p>
-    </div>
-  </section>
-
-<footer>
-  <div class="footer-content">
-    <div class="footer-logo">
-      <img src="img/logo.png" alt="TCR Panamá Logo" class="logo-footer">
-    </div>
-    <div class="footer-links">
-      <h3>Enlaces Rápidos</h3>
       <ul>
         <li><a href="index.html">Home</a></li>
         <li><a href="teams.html">Equipos</a></li>
@@ -134,27 +20,80 @@
         <li><a href="gallery.html">Galería</a></li>
         <li><a href="info.html">Información</a></li>
       </ul>
-    </div>
-    <div class="footer-socials">
-      <h3>Redes Sociales</h3>
-      <div class="social-icons">
-        <a href="#" target="_blank"><img src="img/facebook-icon.png" alt="Facebook"></a>
-        <a href="#" target="_blank"><img src="img/twitter-icon.png" alt="Twitter"></a>
-        <a href="#" target="_blank"><img src="img/instagram-icon.png" alt="Instagram"></a>
+    </nav>
+  </header>
+  <section class="team-introduction">
+    <h2>Conoce a los Equipos</h2>
+    <p>Los mejores equipos del campeonato TCR Panamá compiten en varias de las pistas más emocionantes del país.</p>
+  </section>
+
+  <section class="team-cards">
+    <!-- Ejemplo de Equipo 1 -->
+    <div class="team-card">
+      <img src="https://via.placeholder.com/400x200.png?text=Equipo+Racing+Panamá" alt="Equipo Racing Panamá">
+      <div class="team-info">
+        <h3>Racing Panamá</h3>
+        <p><strong>Pilotos:</strong> Juan Pérez, Luis Gómez</p>
+        <p><strong>Posición:</strong> 1º</p>
       </div>
     </div>
-    <div class="footer-contact">
-      <h3>Contacto</h3>
-      <ul>
-        <li>Email: <a href="mailto:info@tcrpanama.com">info@tcrpanama.com</a></li>
-        <li>Teléfono: <a href="tel:+50712345678">+507 123 456 78</a></li>
-      </ul>
+    
+    <!-- Ejemplo de Equipo 2 -->
+    <div class="team-card">
+      <img src="https://via.placeholder.com/400x200.png?text=Equipo+Turbo+Team" alt="Equipo Turbo Team">
+      <div class="team-info">
+        <h3>Turbo Team</h3>
+        <p><strong>Pilotos:</strong> Akira Tanaka, Carlos Méndez</p>
+        <p><strong>Posición:</strong> 2º</p>
+      </div>
     </div>
-  </div>
-  <div class="footer-bottom">
-    <p>&copy; <span id="current-year"></span> TCR Panamá. Todos los derechos reservados.</p>
-    <p>Desarrollado por <span style="color: #0098ff;">Blue</span>Code</p>
-  </div>
-</footer>
+    
+    <!-- Ejemplo de Equipo 3 -->
+    <div class="team-card">
+      <img src="https://via.placeholder.com/400x200.png?text=Equipo+Chiriquí+Racing" alt="Equipo Chiriquí Racing">
+      <div class="team-info">
+        <h3>Chiriquí Racing</h3>
+        <p><strong>Pilotos:</strong> Mariana Soto, Andrés Ramos</p>
+        <p><strong>Posición:</strong> 3º</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">
+        <img src="img/logo.png" alt="TCR Panamá Logo" class="logo-footer">
+      </div>
+      <div class="footer-links">
+        <h3>Enlaces Rápidos</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="teams.html">Equipos</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="gallery.html">Galería</a></li>
+          <li><a href="info.html">Información</a></li>
+        </ul>
+      </div>
+      <div class="footer-socials">
+        <h3>Redes Sociales</h3>
+        <div class="social-icons">
+          <a href="#" target="_blank"><img src="img/facebook-icon.png" alt="Facebook"></a>
+          <a href="#" target="_blank"><img src="img/twitter-icon.png" alt="Twitter"></a>
+          <a href="#" target="_blank"><img src="img/instagram-icon.png" alt="Instagram"></a>
+        </div>
+      </div>
+      <div class="footer-contact">
+        <h3>Contacto</h3>
+        <ul>
+          <li>Email: <a href="mailto:info@tcrpanama.com">info@tcrpanama.com</a></li>
+          <li>Teléfono: <a href="tel:+50712345678">+507 123 456 78</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; <span id="current-year"></span> TCR Panamá. Todos los derechos reservados.</p>
+      <p>Desarrollado por <span style="color: #0098ff;">Blue</span>Code</p>
+    </div>
+  </footer>
 </body>
 </html>
