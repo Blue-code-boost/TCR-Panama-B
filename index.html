@@ -1,22 +1,28 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  
+<link rel="icon" href="img/favicons/favicon_16x16.ico" sizes="16x16" />
+<link rel="icon" href="img/favicons/favicon_32x32.ico" sizes="32x32" />
+<link rel="icon" href="img/favicons/favicon_48x48.ico" sizes="48x48" />
+<link rel="icon" href="img/favicons/favicon_64x64.ico" sizes="64x64" />
+
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TCR Panamá</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Oswald:wght@400;700&display=swap" rel="stylesheet" />
 </head>
 <body>
   <header>
     <h1>TCR Panamá</h1>
     <nav>
       <ul>
-        <li><a href="#">Home</a></li>
+        <li><a href="index.html">Home</a></li>
         <li><a href="teams.html">Teams</a></li>
         <li><a href="info.html">Info</a></li>
-        <li><a href="#">Register</a></li>
-        <li><a href="#">Sign In</a></li>
         <li><a href="gallery.html">Gallery</a></li>
         <li><a href="blog.html">Blog</a></li>
       </ul>
@@ -28,8 +34,8 @@
     <p class="subtitle">It's on the way</p>
     <p class="description">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.</p>
     <div class="buttons">
-      <button>Info</button>
-      <button>Schedule</button>
+      <a href="info.html"><button>Info</button></a>
+      <a href="#calendario"><button>Schedule</button></a>
     </div>
   </section>
 
@@ -59,7 +65,7 @@
     </div>
   </section>
 
-  <section class="calendar-section">
+  <section class="calendar-section" id="calendario">
     <h3>Calendario de Próximos Eventos</h3>
     <div class="event-item">
       <h4>Gran Premio de Tocumen</h4>
@@ -78,6 +84,7 @@
       <div class="event-date">24 Agosto 2025 - Autódromo de Chiriquí</div>
     </div>
   </section>
+
   <section class="positions-section">
     <h3>Posiciones del Campeonato</h3>
     <table>
@@ -96,12 +103,17 @@
         <tr><td>4</td><td>Carlos Méndez</td><td>Chiriquí Racing</td><td>86</td></tr>
       </tbody>
     </table>
+
     <h3>Resultados por Fecha</h3>
     <div class="result-date">
       <h4>15 junio 2025 – Gran Premio de Tocumen</h4>
       <p>🥇 Juan Pérez · 🥈 Luis Gómez · 🥉 Akira Tanaka</p>
     </div>
-    
+    <div class="result-date">
+      <h4>12 julio 2025 – Carrera Callejera Casco Antiguo</h4>
+      <p>🥇 Luis Gómez · 🥈 Carlos Méndez · 🥉 Juan Pérez</p>
+    </div>
+  </section>
 
   <script src="js/main.js"></script>
 </body>
