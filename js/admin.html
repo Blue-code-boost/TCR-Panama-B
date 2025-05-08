@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin TCR Panamá</title>
+  <link rel="stylesheet" href="style-admin.css">
+</head>
+<body>
+  <header>
+    <h1>Administración TCR Panamá</h1>
+    <nav>
+      <ul>
+        <li><a href="admin.html#teams">Equipos</a></li>
+        <li><a href="admin.html#events">Eventos</a></li>
+        <li><a href="admin.html#news">Noticias</a></li>
+        <li><a href="admin.html#gallery">Galería</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Sección Equipos -->
+    <section id="teams">
+      <h2>Gestionar Equipos</h2>
+      <form id="team-form">
+        <input type="text" id="team-name" placeholder="Nombre del equipo" required>
+        <input type="text" id="team-pilots" placeholder="Pilotos (separados por comas)" required>
+        <input type="number" id="team-position" placeholder="Posición" required>
+        <button type="submit">Crear Equipo</button>
+      </form>
+      <ul id="teams-list"></ul>
+    </section>
+
+    <!-- TODO: Repetir para events, news, gallery -->
+    <section id="events">
+      <h2>Próximamente: Eventos</h2>
+    </section>
+
+    <section id="news">
+      <h2>Próximamente: Noticias</h2>
+    </section>
+
+    <section id="gallery">
+      <h2>Próximamente: Galería</h2>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
