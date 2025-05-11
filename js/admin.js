@@ -197,6 +197,151 @@ async function handleBulkEvents() {
   }
 }
 
+// === Noticias ===
+async function loadNews() {
+  try {
+    const res = await fetch(`${API}/news`);
+    if (!res.ok) throw new Error(res.status);
+    const items = await res.json();
+    const list = document.getElementById('news-list');
+list.innerHTML = items.map(n =>
+  `<li data-id="${n._id}">
+     <div class="news-admin-item">
+       <h4>${n.title}</h4>
+       <div class="news-admin-date">${new Date(n.date).toLocaleDateString()}</div>
+       <p class="news-admin-content">${n.content}</p>
+     </div>
+     <div class="news-admin-actions">
+       <button class="edit-news-btn">Editar</button>
+       <button class="delete-news-btn">Eliminar</button>
+     </div>
+   </li>`
+).join('');
+
+
+    // Eliminar
+    document.querySelectorAll('.delete-news-btn').forEach(btn => {
+      btn.onclick = async e => {
+        const id = e.target.closest('li').dataset.id;
+        if (confirm('¿Eliminar esta noticia?')) {
+          await fetch(`${API}/news/${id}`, { method: 'DELETE' });
+          loadNews();
+        }
+      };
+    });
+
+    // Editar
+    document.querySelectorAll('.edit-news-btn').forEach(btn => {
+      btn.onclick = async e => {
+        const id = e.target.closest('li').dataset.id;
+        const res2 = await fetch(`${API}/news/${id}`);
+        if (!res2.ok) return alert('No se pudo cargar la noticia');
+        const news = await res2.json();
+        document.getElementById('news-id').value      = id;
+        document.getElementById('news-title').value   = news.title;
+        document.getElementById('news-date').value    = news.date.slice(0,10);
+        document.getElementById('news-content').value = news.content;
+        document.getElementById('news-submit-btn').innerText = 'Actualizar Noticia';
+      };
+    });
+  } catch (err) {
+    console.error('Error loadNews()', err);
+  }
+}
+
+async function handleNewsFormSubmit(e) {
+  e.preventDefault();
+  console.log('🔥 handleNewsFormSubmit disparado');
+  const id      = document.getElementById('news-id').value;
+  const title   = document.getElementById('news-title').value.trim();
+  const date    = document.getElementById('news-date').value;
+  const content = document.getElementById('news-content').value.trim();
+  const payload = { title, date, content };
+
+  const opts = {
+    method: id ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  };
+  const res = await fetch(`${API}/news${id?'/'+id:''}`, opts);
+  if (!res.ok) alert('Error guardando noticia');
+  document.getElementById('news-form').reset();
+  document.getElementById('news-submit-btn').innerText = 'Crear Noticia';
+  loadNews();
+}
+
+async function handleBulkNews() {
+  console.log('🔥 handleBulkNews disparado', document.getElementById('news-excel').files);
+  const fileInput = document.getElementById('news-excel');
+  if (!fileInput.files.length) return alert('Selecciona un archivo');
+  const data = await fileInput.files[0].arrayBuffer();
+  const wb   = XLSX.read(data);
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws);
+  document.getElementById('bulk-news-status').innerText = 'Importando...';
+  const res = await fetch(`${API}/news/bulk`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rows)
+  });
+  if (res.ok) {
+    document.getElementById('bulk-news-status').innerText = 'Importación exitosa 🎉';
+    loadNews();
+  } else {
+    document.getElementById('bulk-news-status').innerText = 'Error en importación';
+  }
+}
+
+// === Galería ===
+async function loadGallery() {
+  try {
+    const res  = await fetch(`${API}/gallery`);
+    const data = await res.json();
+    const list = document.getElementById('gallery-list');
+    list.innerHTML = data.map(i => `
+      <li data-id="${i._id}">
+        <img src="${i.url}" alt="${i.caption}" width="100">
+        <p>${i.caption}</p>
+        <button class="delete-gallery-btn">Eliminar</button>
+      </li>
+    `).join('');
+
+    // Borrar cada imagen
+    document.querySelectorAll('.delete-gallery-btn').forEach(btn => {
+      btn.onclick = async e => {
+        const id = e.target.closest('li').dataset.id;
+        if (!confirm('¿Eliminar esta imagen?')) return;
+        await fetch(`${API}/gallery/${id}`, { method: 'DELETE' });
+        loadGallery();
+      };
+    });
+  } catch (err) {
+    console.error('Error loadGallery()', err);
+  }
+}
+
+async function handleGalleryFormSubmit(e) {
+  e.preventDefault();
+  const fileInput    = document.getElementById('gallery-image');
+  const captionInput = document.getElementById('gallery-caption');
+  const file = fileInput.files[0];
+  if (!file) return alert('Selecciona una imagen');
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('caption', captionInput.value.trim());
+
+  const res = await fetch(`${API}/gallery`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) return alert('Error subiendo imagen');
+  fileInput.value = '';
+  captionInput.value = '';
+  loadGallery();
+}
+
+
+
 // Cuando el DOM esté listo, registra listeners
 window.addEventListener('DOMContentLoaded', () => {
   console.log('✅ admin.js cargado');
@@ -204,6 +349,11 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('bulk-upload-btn').addEventListener('click', handleBulkUpload);
   document.getElementById('event-form').addEventListener('submit', handleEventFormSubmit);
   document.getElementById('bulk-events-btn').addEventListener('click',   handleBulkEvents);
+  document.getElementById('news-form').addEventListener('submit', handleNewsFormSubmit);
+document.getElementById('bulk-news-btn').addEventListener('click', handleBulkNews);
+  document.getElementById('gallery-form').addEventListener('submit', handleGalleryFormSubmit);
   loadTeams();
-  loadEvents(); 
+  loadEvents();
+  loadNews(); 
+  loadGallery();
 });

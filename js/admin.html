@@ -70,13 +70,43 @@
   <ul id="events-list"></ul>
 </section>
 
-    <!-- Más módulos en desarrollo -->
-    <section id="news">
-      <h2>Próximamente: Noticias</h2>
-    </section>
-    <section id="gallery">
-      <h2>Próximamente: Galería</h2>
-    </section>
+    
+ <section id="news">
+  <h2>Gestionar Noticias</h2>
+
+  <form id="news-form">
+    <input type="hidden" id="news-id" value="">
+    <input type="text"   id="news-title"   placeholder="Título de la noticia" required>
+    <input type="date"   id="news-date"    required>
+    <textarea id="news-content" placeholder="Contenido" rows="3" required></textarea>
+    <button type="submit" id="news-submit-btn">Crear Noticia</button>
+  </form>
+
+  <div class="bulk-upload">
+    <h3>Plantilla de Noticias</h3>
+    <a href="/templates/news_template.xlsx" download class="download-btn">Descargar Plantilla de Noticias</a>
+
+    <h3>Carga Masiva de Noticias</h3>
+    <input type="file" id="news-excel" accept=".xlsx, .xls">
+    <button id="bulk-news-btn" type="button">Importar Noticias desde Excel</button>
+    <p id="bulk-news-status"></p>
+  </div>
+
+  <ul id="news-list"></ul>
+</section>
+
+<section id="gallery-admin">
+  <h2>Gestionar Galería</h2>
+
+  <form id="gallery-form" enctype="multipart/form-data">
+    <input type="file" id="gallery-image" accept="image/*" required>
+    <input type="text" id="gallery-caption" placeholder="Descripción (caption)">
+    <button type="submit" id="gallery-submit-btn">Subir Imagen</button>
+  </form>
+
+  <ul id="gallery-list"></ul>
+</section>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>

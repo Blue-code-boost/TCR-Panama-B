@@ -4,8 +4,28 @@ const path    = require('path');
 const express = require('express');
 const team   = require('./models/team')
 const Event = require('./models/Event');
+const News = require('./models/News');
+const fs      = require('fs');
+const multer  = require('multer');
+const Gallery = require('./models/Gallery');
+const uploadsDir = path.join(__dirname, 'uploads', 'gallery');
+fs.mkdirSync(uploadsDir, { recursive: true });
 const app = express();
 const port = 3000;  
+
+// storage Multer
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => cb(null, uploadsDir),
+  filename:    (_, file, cb) => {
+    // usar timestamp + extensión original
+    const name = Date.now() + path.extname(file.originalname);
+    cb(null, name);
+  }
+});
+const upload = multer({ storage });
+
+// servir carpeta /uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(cors());                        // <-- habilitar CORS
 app.use(express.json());
@@ -66,7 +86,7 @@ app.delete('/teams/:id', async (req, res) => {
       res.status(400).send('ID inválido');
     }
   });
-  
+
   // Rutas Eventos
 app.get('/events', async (req, res) => {
   const evs = await Event.find();
@@ -145,4 +165,82 @@ app.post('/teams/bulk', async (req, res) => {
   }
 });  
 
+// CRUD Noticias
+app.get('/news', async (req, res) => {
+  const list = await News.find().sort({ date: -1 });
+  res.json(list);
+});
+app.get('/news/:id', async (req, res) => {
+  const item = await News.findById(req.params.id);
+  res.json(item);
+});
+app.post('/news', async (req, res) => {
+  const created = await News.create(req.body);
+  res.status(201).json(created);
+});
+app.put('/news/:id', async (req, res) => {
+  const updated = await News.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updated);
+});
+app.delete('/news/:id', async (req, res) => {
+  await News.findByIdAndDelete(req.params.id);
+  res.status(204).send();
+});
+// Bulk upload Noticias
+app.post('/news/bulk', async (req, res) => {
+  const docs = req.body.map(n => ({
+    title:   n.title,
+    date:    new Date(n.date),
+    content: n.content
+  }));
+  await News.insertMany(docs);
+  res.status(201).send('Bulk news imported');
+});
+
+// Listar imágenes
+app.get('/gallery', async (req, res) => {
+  const items = await Gallery.find().sort({ date: -1 });
+  res.json(items);
+});
+
+// Subir imagen individual
+app.post('/gallery', upload.single('image'), async (req, res) => {
+  const caption = req.body.caption || '';
+  const filename = req.file.filename;
+  const url = `/uploads/gallery/${filename}`;
+  const item = await Gallery.create({ filename, url, caption });
+  res.status(201).json(item);
+});
+
+// DELETE /gallery/:id
+app.delete('/gallery/:id', async (req, res) => {
+  try {
+    // 1. Busca y elimina el documento de MongoDB
+    const item = await Gallery.findByIdAndDelete(req.params.id);
+    if (!item) {
+      return res.status(404).send('Item not found');
+    }
+
+    // 2. Borra el fichero físico (ajusta uploadsDir si tu carpeta está fuera de js/)
+    // Si tu uploads están dentro de js/uploads/gallery, usa:
+    const filePath = path.join(__dirname, 'uploads', 'gallery', item.filename);
+    // Si en cambio los tienes en root/uploads/gallery, usa:
+    // const filePath = path.join(__dirname, '..', 'uploads', 'gallery', item.filename);
+
+    fs.unlink(filePath, err => {
+      if (err) {
+        // Si no existe el fichero, solo lo logueamos pero no devolvemos error
+        console.warn('⚠️ No se pudo borrar el fichero:', filePath, err.message);
+      } else {
+        console.log('🗑️ Fichero borrado:', filePath);
+      }
+    });
+
+    // 3. Responde con 204 No Content
+    res.status(204).send();
+  } catch (err) {
+    console.error('Error en DELETE /gallery/:id', err);
+    res.status(500).send('Server error');
+  }
+});
 
