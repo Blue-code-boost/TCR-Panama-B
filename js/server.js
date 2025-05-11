@@ -3,6 +3,7 @@ const cors    = require('cors');
 const path    = require('path');
 const express = require('express');
 const team   = require('./models/team')
+const Event = require('./models/Event');
 const app = express();
 const port = 3000;  
 
@@ -66,6 +67,38 @@ app.delete('/teams/:id', async (req, res) => {
     }
   });
   
+  // Rutas Eventos
+app.get('/events', async (req, res) => {
+  const evs = await Event.find();
+  res.json(evs);
+});
+app.get('/events/:id', async (req, res) => {
+  const ev = await Event.findById(req.params.id);
+  res.json(ev);
+});
+app.post('/events', async (req, res) => {
+  const created = await Event.create(req.body);
+  res.status(201).json(created);
+});
+app.put('/events/:id', async (req, res) => {
+  const updated = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updated);
+});
+app.delete('/events/:id', async (req, res) => {
+  await Event.findByIdAndDelete(req.params.id);
+  res.status(204).send();
+});
+
+// Bulk
+app.post('/events/bulk', async (req, res) => {
+  const docs = req.body.map(e => ({
+    name: e.name,
+    date: new Date(e.date),
+    location: e.location
+  }));
+  await Event.insertMany(docs);
+  res.status(201).send('Bulk events imported');
+});
 // Conexión a MongoDB
 mongoose.connect('mongodb://localhost:27017/tcr_panama_db', {
   useNewUrlParser: true,
@@ -97,6 +130,19 @@ app.listen(port, () => {
   console.log(`Servidor en ejecución en http://localhost:${port}`);
 });
 
-  
+// Bulk insert
+app.post('/teams/bulk', async (req, res) => {
+  try {
+    const docs = req.body.map(item => ({
+      name: item.name,
+      pilots: (item.pilots || '').split(',').map(s => s.trim()),
+      position: Number(item.position)
+    }));
+    await Team.insertMany(docs);
+    res.status(201).send('Bulk import completed');
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});  
 
 

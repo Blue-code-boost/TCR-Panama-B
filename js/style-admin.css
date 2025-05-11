@@ -1,60 +1,185 @@
 body {
-    font-family: Roboto, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    background: #111;
-    color: #fff;
-    padding: 1rem;
-  }
-  nav ul {
-    list-style: none;
-    display: flex;
-    gap: 1rem;
-  }
-  nav a {
-    color: #0098ff;
-    text-decoration: none;
-  }
-  main {
-    padding: 1rem;
-  }
-  section {
-    background: #fff;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  form {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  form input,
-  form button {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  form button {
-    background: #0098ff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  form button:hover {
-    background: #007acc;
-  }
-  #teams-list {
-    margin-top: 1rem;
-    list-style: none;
-    padding: 0;
-  }
-  #teams-list li {
-    padding: 0.5rem;
-    border-bottom: 1px solid #eee;
-  }
+  font-family: Roboto, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+header {
+  background: #111;
+  color: #fff;
+  padding: 1rem;
+}
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+nav a {
+  color: #0098ff;
+  text-decoration: none;
+}
+main {
+  padding: 1rem;
+}
+section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+form input,
+form button {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+form button {
+  background: #0098ff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+form button:hover {
+  background: #007acc;
+}
+#teams-list {
+  list-style: none;
+  padding: 0;
+}
+#teams-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+#teams-list button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#teams-list .edit-btn {
+  background: orange;
+  color: #fff;
+}
+#teams-list .delete-btn {
+  background: red;
+  color: #fff;
+}
+
+/* ... existente ... */
+.bulk-upload {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  background: #fafafa;
+}
+.bulk-upload h3 {
+  margin-top: 0;
+  color: #333;
+}
+.bulk-upload input[type=file] {
+  margin-right: 0.5rem;
+}
+.bulk-upload button {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.bulk-upload button:hover {
+  background: #218838;
+}
+.bulk-upload p {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* ... existente ... */
+.download-btn {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #0069d9;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+.download-btn:hover {
+  background: #0056b3;
+}
+
+/* Estilos globales */
+body { font-family: Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+header { background: #111; color: #fff; padding: 1rem; }
+nav ul { list-style: none; display: flex; gap: 1rem; }
+nav a { color: #0098ff; text-decoration: none; }
+main { padding: 1rem; }
+section { background: #fff; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+form { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+form input, form button { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+form button { background: #0098ff; color: #fff; border: none; cursor: pointer; transition: background 0.3s; }
+form button:hover { background: #007acc; }
+#teams-list { list-style: none; padding: 0; }
+#teams-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; }
+#teams-list button { margin-left: 0.5rem; padding: 0.3rem 0.6rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+#teams-list .edit-btn { background: orange; color: #fff; }
+#teams-list .delete-btn { background: red; color: #fff; }
+#events-list .edit-btn { background: orange; color: #fff; }
+#events-list .delete-btn { background: red; color: #fff; }
+/* Bulk upload */
+.download-btn { display: inline-block; margin-bottom: 0.75rem; padding: 0.5rem 1rem; background: #0069d9; color: #fff; text-decoration: none; border-radius: 4px; transition: background 0.3s; }
+.download-btn:hover { background: #0056b3; }
+.bulk-upload { margin: 1rem 0; padding: 1rem; border: 1px dashed #ccc; border-radius: 4px; background: #fafafa; }
+.bulk-upload h3 { margin-top: 0; }
+.bulk-upload input[type=file] { margin-right: 0.5rem; }
+.bulk-upload button { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: background 0.3s; }
+.bulk-upload button:hover { background: #218838; }
+.bulk-upload p { margin-top: 0.5rem; color: #555; }
+
+/* ==== Lista de Eventos ==== */
+#events-list {
+  list-style: none;
+  padding: 0;
+}
+#events-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+#events-list button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#events-list .edit-event-btn {
+  background: orange;
+  color: #fff;
+}
+#events-list .delete-event-btn {
+  background: red;
+  color: #fff;
+}

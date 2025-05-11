@@ -11,10 +11,10 @@
     <h1>Administración TCR Panamá</h1>
     <nav>
       <ul>
-        <li><a href="admin.html#teams">Equipos</a></li>
-        <li><a href="admin.html#events">Eventos</a></li>
-        <li><a href="admin.html#news">Noticias</a></li>
-        <li><a href="admin.html#gallery">Galería</a></li>
+        <li><a href="#teams">Equipos</a></li>
+        <li><a href="#events">Eventos</a></li>
+        <li><a href="#news">Noticias</a></li>
+        <li><a href="#gallery">Galería</a></li>
       </ul>
     </nav>
   </header>
@@ -23,29 +23,63 @@
     <!-- Sección Equipos -->
     <section id="teams">
       <h2>Gestionar Equipos</h2>
+
+      <!-- Formulario individual -->
       <form id="team-form">
+        <input type="hidden" id="team-id">
         <input type="text" id="team-name" placeholder="Nombre del equipo" required>
         <input type="text" id="team-pilots" placeholder="Pilotos (separados por comas)" required>
         <input type="number" id="team-position" placeholder="Posición" required>
-        <button type="submit">Crear Equipo</button>
+        <button type="submit" id="team-submit-btn">Crear Equipo</button>
       </form>
+
+      <!-- Descargar plantilla y carga masiva -->
+      <div class="bulk-upload">
+        <h3>Plantilla de Excel</h3>
+        <a href="templates/teams_template.xlsx" download class="download-btn">Descargar Plantilla</a>
+
+        <h3>Carga Masiva de Equipos</h3>
+        <input type="file" id="excel-file" accept=".xlsx, .xls">
+        <button id="bulk-upload-btn" type="button">Importar desde Excel</button>
+        <p id="bulk-status"></p>
+      </div>
       <ul id="teams-list"></ul>
     </section>
 
-    <!-- TODO: Repetir para events, news, gallery -->
     <section id="events">
-      <h2>Próximamente: Eventos</h2>
-    </section>
+  <h2>Gestionar Eventos</h2>
 
+  <form id="event-form">
+    <input type="hidden" id="event-id" value="">
+    <input type="text"   id="event-name"     placeholder="Nombre del evento" required>
+    <input type="date"   id="event-date"     required>
+    <input type="text"   id="event-location" placeholder="Ubicación" required>
+    <button type="submit" id="event-submit-btn">Crear Evento</button>
+  </form>
+
+  <div class="bulk-upload">
+    <h3>Plantilla de Eventos</h3>
+    <a href="/templates/events_template.xlsx" download class="download-btn">Descargar Plantilla de Eventos</a>
+
+    <h3>Carga Masiva de Eventos</h3>
+    <input type="file" id="events-excel" accept=".xlsx, .xls">
+    <button id="bulk-events-btn" type="button">Importar Eventos desde Excel</button>
+    <p id="bulk-events-status"></p>
+  </div>
+
+  <ul id="events-list"></ul>
+</section>
+
+    <!-- Más módulos en desarrollo -->
     <section id="news">
       <h2>Próximamente: Noticias</h2>
     </section>
-
     <section id="gallery">
       <h2>Próximamente: Galería</h2>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
