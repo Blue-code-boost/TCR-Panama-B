@@ -13,7 +13,7 @@
       <ul>
         <li><a href="#teams">Equipos</a></li>
         <li><a href="#events">Eventos</a></li>
-        <li><a href="#news">Noticias</a></li>
+        <li><a href="#news-admin">Noticias</a></li>
         <li><a href="#gallery-admin">Galería</a></li>
         <li><a href="#info-admin">info</a></li>
         <li><a href="#positions-admin">Posiciones</a></li>
@@ -74,15 +74,15 @@
 </section>
 
     
- <section id="news">
+ <section id="news-admin">
   <h2>Gestionar Noticias</h2>
 
   <form id="news-form">
-    <input type="hidden" id="news-id" value="">
-    <input type="text"   id="news-title"   placeholder="Título de la noticia" required>
-    <input type="date"   id="news-date"    required>
-    <textarea id="news-content" placeholder="Contenido" rows="3" required></textarea>
-    <button type="submit" id="news-submit-btn">Crear Noticia</button>
+    <input type="hidden" id="news-id">
+    <input type="text"   id="news-title"       placeholder="Título"      required>
+    <input type="date"   id="news-date"        required>
+    <textarea             id="news-description" placeholder="Descripción" rows="3" required></textarea>
+    <button type="submit" id="news-submit-btn">Crear / Actualizar</button>
   </form>
 
   <div class="bulk-upload">

@@ -197,51 +197,43 @@ async function handleBulkEvents() {
   }
 }
 
-// === Noticias ===
+// ==== Noticias ====
 async function loadNews() {
   try {
-    const res = await fetch(`${API}/news`);
-    if (!res.ok) throw new Error(res.status);
-    const items = await res.json();
+    const res  = await fetch(`${API}/news`);
+    const data = await res.json();
     const list = document.getElementById('news-list');
-list.innerHTML = items.map(n =>
-  `<li data-id="${n._id}">
-     <div class="news-admin-item">
-       <h4>${n.title}</h4>
-       <div class="news-admin-date">${new Date(n.date).toLocaleDateString()}</div>
-       <p class="news-admin-content">${n.content}</p>
-     </div>
-     <div class="news-admin-actions">
-       <button class="edit-news-btn">Editar</button>
-       <button class="delete-news-btn">Eliminar</button>
-     </div>
-   </li>`
-).join('');
-
-
-    // Eliminar
-    document.querySelectorAll('.delete-news-btn').forEach(btn => {
-      btn.onclick = async e => {
-        const id = e.target.closest('li').dataset.id;
-        if (confirm('¿Eliminar esta noticia?')) {
-          await fetch(`${API}/news/${id}`, { method: 'DELETE' });
-          loadNews();
-        }
-      };
-    });
+    list.innerHTML = data.map(n => `
+      <li data-id="${n._id}">
+        <strong>${n.title}</strong>
+        <small>${new Date(n.date).toLocaleDateString()}</small>
+        <p>${n.description}</p>
+        <button class="edit-news-btn">Editar</button>
+        <button class="delete-news-btn">Eliminar</button>
+      </li>
+    `).join('');
 
     // Editar
     document.querySelectorAll('.edit-news-btn').forEach(btn => {
-      btn.onclick = async e => {
-        const id = e.target.closest('li').dataset.id;
-        const res2 = await fetch(`${API}/news/${id}`);
-        if (!res2.ok) return alert('No se pudo cargar la noticia');
-        const news = await res2.json();
-        document.getElementById('news-id').value      = id;
-        document.getElementById('news-title').value   = news.title;
-        document.getElementById('news-date').value    = news.date.slice(0,10);
-        document.getElementById('news-content').value = news.content;
-        document.getElementById('news-submit-btn').innerText = 'Actualizar Noticia';
+      btn.onclick = () => {
+        const li = btn.closest('li');
+        const id = li.dataset.id;
+        const n  = data.find(x => x._id === id);
+        document.getElementById('news-id').value           = id;
+        document.getElementById('news-title').value        = n.title;
+        document.getElementById('news-date').value         = n.date.slice(0,10);
+        document.getElementById('news-description').value  = n.description;
+        document.getElementById('news-submit-btn').innerText = 'Actualizar';
+      };
+    });
+
+    // Borrar
+    document.querySelectorAll('.delete-news-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.closest('li').dataset.id;
+        if (!confirm('¿Eliminar esta noticia?')) return;
+        await fetch(`${API}/news/${id}`, { method: 'DELETE' });
+        loadNews();
       };
     });
   } catch (err) {
@@ -251,24 +243,35 @@ list.innerHTML = items.map(n =>
 
 async function handleNewsFormSubmit(e) {
   e.preventDefault();
-  console.log('🔥 handleNewsFormSubmit disparado');
-  const id      = document.getElementById('news-id').value;
-  const title   = document.getElementById('news-title').value.trim();
-  const date    = document.getElementById('news-date').value;
-  const content = document.getElementById('news-content').value.trim();
-  const payload = { title, date, content };
-
+  const id          = document.getElementById('news-id').value;
+  const payload     = {
+    title:       document.getElementById('news-title').value.trim(),
+    date:        document.getElementById('news-date').value,
+    description: document.getElementById('news-description').value.trim()
+  };
   const opts = {
     method: id ? 'PUT' : 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body:    JSON.stringify(payload)
   };
-  const res = await fetch(`${API}/news${id?'/'+id:''}`, opts);
-  if (!res.ok) alert('Error guardando noticia');
-  document.getElementById('news-form').reset();
-  document.getElementById('news-submit-btn').innerText = 'Crear Noticia';
-  loadNews();
+  const url = `${API}/news${id ? '/' + id : ''}`;
+  const res = await fetch(url, opts);
+  if (res.status === 201 || res.ok) {
+    document.getElementById('news-form').reset();
+    document.getElementById('news-submit-btn').innerText = 'Crear / Actualizar';
+    loadNews();
+  } else {
+    alert(`Error guardando Noticia (${res.status})`);
+  }
 }
+
+// Registrar listeners
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('news-form')
+          .addEventListener('submit', handleNewsFormSubmit);
+  loadNews();
+});
+
 
 async function handleBulkNews() {
   console.log('🔥 handleBulkNews disparado', document.getElementById('news-excel').files);

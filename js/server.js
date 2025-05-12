@@ -169,27 +169,36 @@ app.post('/teams/bulk', async (req, res) => {
   }
 });  
 
-// CRUD Noticias
+// GET /news — todas las noticias ordenadas por fecha desc
 app.get('/news', async (req, res) => {
   const list = await News.find().sort({ date: -1 });
   res.json(list);
 });
-app.get('/news/:id', async (req, res) => {
-  const item = await News.findById(req.params.id);
-  res.json(item);
-});
-app.post('/news', async (req, res) => {
-  const created = await News.create(req.body);
+
+// POST /news — crear noticia
+app.post('/news', express.json(), async (req, res) => {
+  const { title, date, description } = req.body;
+  const created = await News.create({ title, date, description });
   res.status(201).json(created);
 });
-app.put('/news/:id', async (req, res) => {
-  const updated = await News.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+// PUT /news/:id — actualizar
+app.put('/news/:id', express.json(), async (req, res) => {
+  const { title, date, description } = req.body;
+  const updated = await News.findByIdAndUpdate(
+    req.params.id,
+    { title, date, description },
+    { new: true }
+  );
   res.json(updated);
 });
+
+// DELETE /news/:id — borrar
 app.delete('/news/:id', async (req, res) => {
   await News.findByIdAndDelete(req.params.id);
   res.status(204).send();
 });
+
 // Bulk upload Noticias
 app.post('/news/bulk', async (req, res) => {
   const docs = req.body.map(n => ({
