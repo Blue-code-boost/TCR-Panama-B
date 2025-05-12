@@ -324,3 +324,351 @@ form button:hover { background: #007acc; }
 #gallery-list .delete-gallery-btn:hover {
   background: darkred;
 }
+
+/* ==== Info admin ==== */
+#info-admin form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+#info-admin input,
+#info-admin textarea {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+#info-submit-btn {
+  align-self: flex-start;
+  background: #0098ff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#info-submit-btn:hover {
+  background: #007acc;
+}
+#info-list {
+  list-style: none;
+  padding: 0;
+}
+#info-list li {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+#info-list li p {
+  margin: 0.25rem 0;
+  color: #333;
+}
+#info-list button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#info-list .edit-info-btn {
+  background: orange;
+  color: #fff;
+}
+#info-list .delete-info-btn {
+  background: red;
+  color: #fff;
+}
+/* ==== Ajuste de renderizado en lista de Info ==== */
+#info-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;       /* espacio entre contenido y botones */
+  padding: 0.5rem 0;  /* opcional, para dar espacio vertical */
+}
+
+#info-list li p {
+  flex: 1;                   /* ocupa todo el espacio disponible */
+  margin: 0.25rem 0;         /* pequeño margen arriba/abajo */
+  white-space: normal;       /* permite salto de línea dentro del párrafo */
+  word-break: break-word;    /* parte palabras muy largas */
+}
+
+#info-list li button {
+  flex: 0 0 auto;            /* no permiten que los botones crezcan o encojan */
+}
+#info-list li p {
+  max-width: 70%;
+}
+
+/* ==== Posiciones admin ==== */
+#positions-admin form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+#positions-admin input {
+  width: calc(25% - 0.5rem);
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+#pos-submit-btn {
+  background: #0098ff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#pos-submit-btn:hover {
+  background: #007acc;
+}
+#positions-list {
+  list-style: none;
+  padding: 0;
+}
+#positions-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+#positions-list button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+#positions-list .edit-pos-btn {
+  background: orange;
+  color: #fff;
+}
+#positions-list .delete-pos-btn {
+  background: red;
+  color: #fff;
+}
+/* ==== Bulk upload Posiciones ==== */
+#positions-bulk-upload {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  background: #fafafa;
+}
+#positions-bulk-upload h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+#positions-bulk-upload .download-btn {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #0069d9;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+#positions-bulk-upload .download-btn:hover {
+  background: #0056b3;
+}
+#bulk-positions-file {
+  display: block;
+  margin: 0.5rem 0;
+}
+#bulk-positions-btn {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+#bulk-positions-btn:hover {
+  background: #218838;
+}
+#bulk-positions-status {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* ==== Resultados admin ==== */
+#results-admin form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+#results-admin input {
+  width: calc(20% - 0.5rem);
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#res-submit-btn {
+  background: #0098ff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#res-submit-btn:hover {
+  background: #007acc;
+}
+#results-list {
+  list-style: none;
+  padding: 0;
+}
+#results-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+#results-list button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+#results-list .edit-res-btn {
+  background: orange;
+  color: #fff;
+}
+#results-list .delete-res-btn {
+  background: red;
+  color: #fff;
+}
+
+/* ==== Blog admin ==== */
+#blog-admin form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+#blog-admin input[type="text"],
+#blog-admin input[type="date"],
+#blog-admin textarea,
+#blog-admin input[type="file"] {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+#blog-submit-btn {
+  align-self: flex-start;
+  background: #0098ff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#blog-submit-btn:hover {
+  background: #007acc;
+}
+
+#blog-list {
+  list-style: none;
+  padding: 0;
+}
+#blog-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+#blog-list img {
+  border-radius: 4px;
+  object-fit: cover;
+}
+#blog-list .blog-info {
+  flex: 1;
+}
+#blog-list .blog-info p {
+  margin: 0.5rem 0;
+  color: #333;
+}
+#blog-list .blog-actions button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+#blog-list .edit-blog-btn {
+  background: orange;
+  color: #fff;
+}
+#blog-list .delete-blog-btn {
+  background: red;
+  color: #fff;
+}
+
+/* ==== Fix visualización Blog List ==== */
+#blog-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;                   /* espacio entre imagen, texto y acciones */
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+#blog-list img {
+  flex: 0 0 auto;              /* no crece ni encoge */
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+#blog-list .blog-info {
+  flex: 1;                     /* ocupa todo el espacio posible */
+  word-break: break-word;      /* permite partir palabras largas */
+  white-space: normal;         /* habilita wrap de texto */
+}
+
+#blog-list .blog-actions {
+  flex: 0 0 auto;              /* siempre visible a la derecha */
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+#blog-list .blog-actions button {
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+#blog-list .edit-blog-btn {
+  background: orange;
+  color: #fff;
+}
+#blog-list .delete-blog-btn {
+  background: red;
+  color: #fff;
+}

@@ -8,8 +8,12 @@ const News = require('./models/News');
 const fs      = require('fs');
 const multer  = require('multer');
 const Gallery = require('./models/Gallery');
+const Info = require('./models/Info');
+const Blog  = require('./models/Blog');
 const uploadsDir = path.join(__dirname, 'uploads', 'gallery');
 fs.mkdirSync(uploadsDir, { recursive: true });
+const blogUploadDir = path.join(__dirname, 'uploads', 'blog');
+fs.mkdirSync(blogUploadDir, { recursive: true });
 const app = express();
 const port = 3000;  
 
@@ -244,3 +248,171 @@ app.delete('/gallery/:id', async (req, res) => {
   }
 });
 
+// Listar bloques de info
+app.get('/info', async (req, res) => {
+  const items = await Info.find().sort({ createdAt: 1 });
+  res.json(items);
+});
+
+// Crear/Actualizar bloque
+app.post('/info', async (req, res) => {
+  const { id, title, content } = req.body;
+  if (id) {
+    const updated = await Info.findByIdAndUpdate(id, { title, content }, { new: true });
+    return res.json(updated);
+  }
+  const created = await Info.create({ title, content });
+  res.status(201).json(created);
+});
+
+// Eliminar bloque
+app.delete('/info/:id', async (req, res) => {
+  await Info.findByIdAndDelete(req.params.id);
+  res.status(204).send();
+});
+
+const Position = require('./models/Position');
+
+// Listar posiciones
+app.get('/positions', async (req, res) => {
+  const list = await Position.find().sort({ position: 1 });
+  res.json(list);
+});
+
+// Crear posición
+app.post('/positions', async (req, res) => {
+  const created = await Position.create(req.body);
+  res.status(201).json(created);
+});
+
+// Actualizar posición
+app.put('/positions/:id', async (req, res) => {
+  const updated = await Position.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updated);
+});
+
+// Borrar posición
+app.delete('/positions/:id', async (req, res) => {
+  await Position.findByIdAndDelete(req.params.id);
+  res.status(204).send();
+});
+const Result = require('./models/Result');
+
+// Listar resultados
+app.get('/results', async (req, res) => {
+  const list = await Result.find().sort({ date: -1 });
+  res.json(list);
+});
+
+// Crear resultado
+app.post('/results', async (req, res) => {
+  const created = await Result.create(req.body);
+  res.status(201).json(created);
+});
+
+// Actualizar resultado
+app.put('/results/:id', async (req, res) => {
+  const updated = await Result.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updated);
+});
+
+// Borrar resultado
+app.delete('/results/:id', async (req, res) => {
+  await Result.findByIdAndDelete(req.params.id);
+  res.status(204).send();
+});
+
+// Bulk upload de posiciones desde Excel (CSV/TSV convertido)
+const xlsx = require('xlsx');
+
+// POST /positions/bulk
+app.post('/positions/bulk', async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send('Archivo no proporcionado');
+    }
+    // Leer el workbook y la primera hoja
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    // Validar y mapear filas
+    const toInsert = rows.map(r => ({
+      position: r.position,
+      pilot:    r.pilot,
+      team:     r.team,
+      points:   r.points
+    }));
+
+    // Insertar en Mongo
+    const result = await Position.insertMany(toInsert);
+    res.status(201).json({ inserted: result.length });
+  } catch (err) {
+    console.error('Error en POST /positions/bulk', err);
+    res.status(500).send('Error al procesar la importación');
+  }
+});
+
+// Configuración Multer para carpeta uploads/blog
+const blogStorage = multer.diskStorage({
+  destination: (req, file, cb) =>
+    cb(null, path.join(__dirname, 'uploads', 'blog')),
+  filename: (req, file, cb) => {
+    const name = Date.now() + '-' + Math.round(Math.random()*1e9)
+               + path.extname(file.originalname);
+    cb(null, name);
+  }
+});
+const blogUpload = multer({ storage: blogStorage });
+
+// GET /blog
+app.get('/blog', async (req, res) => {
+  const list = await Blog.find().sort({ date: -1 });
+  // Devuelve URLs completas
+  res.json(list.map(b => ({
+    _id:     b._id,
+    title:   b.title,
+    date:    b.date,
+    content: b.content,
+    images:  b.images.map(f => `/uploads/blog/${f}`)
+  })));
+});
+
+// POST /blog  (varias imágenes: campo name="images")
+app.post('/blog', blogUpload.array('images', 5), async (req, res) => {
+  const { title, date, content } = req.body;
+  const images = (req.files || []).map(f => f.filename);
+  const created = await Blog.create({ title, date, content, images });
+  res.status(201).json(created);
+});
+
+// PUT /blog/:id
+app.put('/blog/:id', blogUpload.array('images', 5), async (req, res) => {
+  const { title, date, content } = req.body;
+  const update = { title, date, content };
+  if (req.files && req.files.length) {
+    // Opcionalmente borrar las anteriores:
+    const old = await Blog.findById(req.params.id);
+    if (old?.images) {
+      old.images.forEach(f => {
+        const fp = path.join(__dirname, 'uploads', 'blog', f);
+        fs.unlink(fp, ()=>{});
+      });
+    }
+    update.images = req.files.map(f => f.filename);
+  }
+  const updated = await Blog.findByIdAndUpdate(req.params.id, update, { new: true });
+  res.json(updated);
+});
+
+// DELETE /blog/:id
+app.delete('/blog/:id', async (req, res) => {
+  const item = await Blog.findByIdAndDelete(req.params.id);
+  if (item?.images) {
+    item.images.forEach(f => {
+      const fp = path.join(__dirname, 'uploads', 'blog', f);
+      fs.unlink(fp, ()=>{});
+    });
+  }
+  res.status(204).send();
+});

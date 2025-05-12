@@ -14,7 +14,10 @@
         <li><a href="#teams">Equipos</a></li>
         <li><a href="#events">Eventos</a></li>
         <li><a href="#news">Noticias</a></li>
-        <li><a href="#gallery">Galería</a></li>
+        <li><a href="#gallery-admin">Galería</a></li>
+        <li><a href="#info-admin">info</a></li>
+        <li><a href="#positions-admin">Posiciones</a></li>
+        <li><a href="#blog-admin">Blog</a></li>
       </ul>
     </nav>
   </header>
@@ -106,6 +109,101 @@
 
   <ul id="gallery-list"></ul>
 </section>
+
+<section id="info-admin">
+  <h2>Gestionar Secciones “Info”</h2>
+
+  <form id="info-form">
+    <input type="hidden" id="info-id" value="">
+    <input type="text"   id="info-title"   placeholder="Título del bloque" required>
+    <textarea           id="info-content" placeholder="Contenido" rows="3" required></textarea>
+    <button type="submit" id="info-submit-btn">Crear / Actualizar</button>
+  </form>
+
+  <ul id="info-list"></ul>
+</section>
+
+<section id="positions-admin">
+  <h2>Gestionar Posiciones</h2>
+
+  <form id="positions-form">
+    <input type="hidden" id="pos-id">
+    <input type="number" id="pos-number" placeholder="Posición" required>
+    <input type="text"   id="pos-pilot"  placeholder="Piloto"   required>
+    <input type="text"   id="pos-team"   placeholder="Equipo"   required>
+    <input type="number" id="pos-points" placeholder="Puntos Obtenidos" required>
+    <button type="submit" id="pos-submit-btn">Crear / Actualizar</button>
+  </form>
+
+  <ul id="positions-list"></ul>
+
+   <!-- Carga masiva -->
+    <div class="bulk-upload" id="positions-bulk-upload">
+      <h3>Carga Masiva de Posiciones</h3>
+      <a href="templates/positions_template.xlsx"
+         class="download-btn"
+         download="positions_template.xlsx">
+        Descargar Plantilla
+      </a>
+      <input type="file" id="bulk-positions-file" accept=".xlsx,.xls" />
+      <button id="bulk-positions-btn">Importar Posiciones</button>
+      <p id="bulk-positions-status"></p>
+    </div>
+
+    <!-- Lista de posiciones -->
+    <ul id="positions-list"></ul>
+</section>
+
+<section id="results-admin">
+  <h2>Gestionar Resultados por Fecha</h2>
+
+  <form id="results-form">
+    <input type="hidden" id="res-id">
+    <input type="text"   id="res-event" placeholder="Nombre del Evento" required>
+    <input type="date"   id="res-date"  required>
+    <input type="text"   id="res-first"  placeholder="1er Lugar"  required>
+    <input type="text"   id="res-second" placeholder="2do Lugar" required>
+    <input type="text"   id="res-third"  placeholder="3er Lugar"  required>
+    <button type="submit" id="res-submit-btn">Crear / Actualizar</button>
+  </form>
+
+  <ul id="results-list"></ul>
+</section>
+<section id="blog-admin">
+  <h2>Gestionar Entradas de Blog</h2>
+
+  <form id="blog-form" enctype="multipart/form-data">
+    <input type="hidden" id="blog-id">
+    <input type="text"   id="blog-title"   placeholder="Título" required>
+    <input type="date"   id="blog-date"    required>
+    <!-- Barra de herramientas sencilla -->
+<div id="blog-toolbar">
+  <button type="button" data-cmd="bold"><b>B</b></button>
+  <button type="button" data-cmd="italic"><i>I</i></button>
+  <button type="button" data-cmd="underline"><u>U</u></button>
+  <button type="button" data-cmd="justifyLeft">⬅️</button>
+  <button type="button" data-cmd="justifyCenter">↔️</button>
+  <button type="button" data-cmd="justifyRight">➡️</button>
+  <button type="button" data-cmd="insertUnorderedList">• List</button>
+</div>
+
+<!-- Área editable -->
+<div id="blog-content-editor"
+     contenteditable="true"
+     style="min-height:120px; border:1px solid #ccc; padding:0.5rem; border-radius:4px;">
+</div>
+
+<!-- Campo oculto que usaremos para enviar el HTML al servidor -->
+<input type="hidden" id="blog-content" name="content">
+
+    <!-- permite múltiples: name debe coincidir con multer.array -->
+    <input type="file"   id="blog-images"  name="images" accept="image/*" multiple>
+    <button type="submit" id="blog-submit-btn">Crear / Actualizar</button>
+  </form>
+
+  <ul id="blog-list"></ul>
+</section>
+
 
   </main>
 
