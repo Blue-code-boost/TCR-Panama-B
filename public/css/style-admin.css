@@ -727,3 +727,42 @@ form button:hover { background: #007acc; }
   background: red;
   color: #fff;
 }
+
+/* Hero admin section */
+#hero-admin {
+  margin-bottom: 2rem;
+}
+#hero-admin .form-group {
+  margin-bottom: 1rem;
+}
+#hero-admin input,
+#hero-admin textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#hero-admin .hero-preview {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px dashed #999;
+  border-radius: 4px;
+}
+#hero-admin .hero-preview img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 1rem;
+}
+#hero-admin button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#hero-admin button:hover {
+  background-color: #0056b3;
+}

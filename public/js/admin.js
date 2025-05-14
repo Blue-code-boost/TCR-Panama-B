@@ -686,6 +686,76 @@ async function handleBlogFormSubmit(e) {
   }
 }
 
+// ——— Hero CRUD ——— //
+
+async function loadHero() {
+  try {
+    const res = await fetch('/hero');
+    const hero = await res.json();
+    const preview = document.getElementById('hero-preview');
+    if (!hero) {
+      preview.innerHTML = '<p>No hay Hero configurado</p>';
+      return;
+    }
+    preview.innerHTML = `
+      ${hero.imageUrl ? `<img src="${hero.imageUrl}" alt="Hero Image">` : ''}
+      <h3>${hero.title}</h3>
+      <h4>${hero.subtitle}</h4>
+      <p>${hero.description}</p>
+      <a href="${hero.btn1.url}" target="_blank">${hero.btn1.text}</a>
+      <a href="${hero.btn2.url}" target="_blank">${hero.btn2.text}</a>
+      <button onclick="editHero('${hero._id}')">Editar</button>
+    `;
+  } catch (err) {
+    console.error('Error cargando Hero:', err);
+  }
+}
+
+function editHero(id) {
+  fetch(`/hero/${id}`)
+    .then(res => res.json())
+    .then(h => {
+      document.getElementById('hero-id').value          = h._id;
+      document.getElementById('hero-title').value       = h.title;
+      document.getElementById('hero-subtitle').value    = h.subtitle;
+      document.getElementById('hero-description').value = h.description;
+      document.getElementById('hero-btn1-text').value   = h.btn1.text;
+      document.getElementById('hero-btn1-url').value    = h.btn1.url;
+      document.getElementById('hero-btn2-text').value   = h.btn2.text;
+      document.getElementById('hero-btn2-url').value    = h.btn2.url;
+    })
+    .catch(console.error);
+}
+
+document.getElementById('hero-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('hero-id').value;
+  const fd = new FormData();
+  fd.append('title',       document.getElementById('hero-title').value);
+  fd.append('subtitle',    document.getElementById('hero-subtitle').value);
+  fd.append('description', document.getElementById('hero-description').value);
+  fd.append('btn1[text]',  document.getElementById('hero-btn1-text').value);
+  fd.append('btn1[url]',   document.getElementById('hero-btn1-url').value);
+  fd.append('btn2[text]',  document.getElementById('hero-btn2-text').value);
+  fd.append('btn2[url]',   document.getElementById('hero-btn2-url').value);
+  const fileInput = document.getElementById('hero-image');
+  if (fileInput.files.length) {
+    fd.append('image', fileInput.files[0]);
+  }
+
+  const opts = { method: id ? 'PUT' : 'POST', body: fd };
+  const url  = id ? `/hero/${id}` : '/hero';
+  try {
+    const res = await fetch(url, opts);
+    if (!res.ok) throw new Error('Error guardando Hero');
+    document.getElementById('hero-form').reset();
+    loadHero();
+  } catch (err) {
+    console.error(err);
+    alert('Error guardando Hero');
+  }
+});
+
 
 
 
@@ -713,4 +783,5 @@ document.getElementById('bulk-news-btn').addEventListener('click', handleBulkNew
   loadPositions();
   loadResults();
   loadBlog();
+  loadHero();
 });

@@ -17,6 +17,20 @@ const Info     = require('./models/info');
 const Blog     = require('./models/blog');
 const Position = require('./models/position');
 const Result   = require('./models/result');
+// Modelo Hero
+const Hero = require('./models/hero');
+
+// Carpeta de uploads para Hero
+const heroDir = path.join(__dirname, 'uploads', 'hero');
+fs.mkdirSync(heroDir, { recursive: true });
+
+// Configuración Multer para Hero
+const heroStorage = multer.diskStorage({
+  destination: (_, __, cb) => cb(null, heroDir),
+  filename:    (_, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+const heroUpload = multer({ storage: heroStorage });
+
 
 const app  = express();
 const port = process.env.PORT || 3000;
@@ -48,6 +62,50 @@ if (!process.env.MONGO_URI) {
   console.error('❌ Falta la variable MONGO_URI en .env');
   process.exit(1);
 }
+
+// ——— Hero CRUD ——— //
+
+// GET /hero → obtiene el único Hero
+app.get('/hero', async (req, res) => {
+  const hero = await Hero.findOne();
+  res.json(hero);
+});
+
+// GET /hero/:id → obtiene Hero por ID
+app.get('/hero/:id', async (req, res) => {
+  try {
+    const hero = await Hero.findById(req.params.id);
+    if (!hero) return res.status(404).end();
+    res.json(hero);
+  } catch {
+    res.status(400).end();
+  }
+});
+
+// POST /hero → crea Hero (sólo uno)
+app.post('/hero', heroUpload.single('image'), async (req, res) => {
+  try {
+    const data = req.body;
+    if (req.file) data.imageUrl = `/uploads/hero/${req.file.filename}`;
+    const created = await Hero.create(data);
+    res.status(201).json(created);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PUT /hero/:id → actualiza Hero existente
+app.put('/hero/:id', heroUpload.single('image'), async (req, res) => {
+  try {
+    const data = req.body;
+    if (req.file) data.imageUrl = `/uploads/hero/${req.file.filename}`;
+    const updated = await Hero.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
+    if (!updated) return res.status(404).end();
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 // Conexión a MongoDB y arranque del servidor
 mongoose.connect(process.env.MONGO_URI)
