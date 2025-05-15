@@ -132,3 +132,90 @@ footer .footer-bottom p span {
 footer .footer-bottom p:hover {
   transform: translateY(-5px);
 }
+
+/* Barra de navegación sticky */
+.site-header {
+  position: sticky; /* o fixed si prefieres que siempre esté en pantalla */
+  top: 0;
+  width: 100%;
+  background-color: #111; /* igual que tu header actual */
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000; /* por encima del resto */
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.site-header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.site-header nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.site-header nav a:hover {
+  color: #e50914;
+  transform: scale(1.1);
+}
+
+/* Ajustes para que Register/login no se corte */
+.site-header nav ul {
+  display: flex;
+  flex-wrap: wrap;      /* permite que los ítems bajen a otra línea si falta espacio */
+  gap: 10px;            /* reduce el espacio entre enlaces */
+  margin: 0;
+  padding: 0;
+}
+
+.site-header nav a {
+  white-space: nowrap;  /* evita que los enlaces se rompan a mitad de palabra */
+  font-size: 14px;      /* ajusta ligeramente el tamaño para que todo quepa */
+  padding: 0 6px;       /* un poquito de espacio interno */
+}
+
+/* Ajustes finales para que Register/login no se corte */
+.site-header nav ul {
+  flex-wrap: wrap;    /* deja que los ítems bajen si no caben */
+  gap: 8px;           /* un poco menos de espacio entre ellos */
+}
+
+.site-header nav a {
+  /* Haz que la fuente escale con el ancho de la ventana */
+  font-size: clamp(12px, 1.2vw, 14px);
+  white-space: nowrap;   /* sigue en una sola línea */
+  padding: 0 4px;        /* menos padding lateral */
+}
+
+/* Si aún así no cabe, en pantallas muy pequeñas: */
+@media (max-width: 500px) {
+  .site-header {
+    flex-direction: column;  /* coloca logo arriba, nav debajo */
+    align-items: flex-start;
+    padding: 10px;
+  }
+  .site-header nav ul {
+    justify-content: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+  }
+}
+
+/* Compensar el contenido bajo el header */
+body {
+  padding-top: 80px; /* altura aproximada del header */
+}

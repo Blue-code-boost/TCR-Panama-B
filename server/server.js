@@ -138,19 +138,63 @@ app.use(express.static(path.join(__dirname)));
 // Middleware para procesar solicitudes JSON
 app.use(express.json());
 
-// Ruta para agregar un nuevo equipo
-app.post('/teams', async (req, res) => {
-  console.log('🏷️  POST /teams recibido:', req.body);
-  const { name, pilots, position } = req.body;
-
-  try {
-    const newTeam = new Team({ name, pilots, position });
-    await newTeam.save();
-    return res.status(201).send('Equipo creado con éxito');
-  } catch (err) {
-    return res.status(400).send('Error al crear equipo: ' + err.message);
+// Storage Multer para imágenes de Team
+const teamStorage = multer.diskStorage({
+  destination: (_, __, cb) =>
+    cb(null, path.join(__dirname, 'uploads', 'teams')),
+  filename: (_, file, cb) => {
+    const name = Date.now() + '-' + Math.round(Math.random()*1e9)
+               + path.extname(file.originalname);
+    cb(null, name);
   }
 });
+const teamUpload = multer({ storage: teamStorage });
+
+// Asegúrate de crear la carpeta
+fs.mkdirSync(path.join(__dirname, 'uploads', 'teams'), { recursive: true });
+
+// Crear equipo con imagen opcional
+app.post('/teams',
+  teamUpload.single('image'),
+  async (req, res) => {
+    try {
+      const { name, pilots, position } = req.body;
+      const imageUrl = req.file
+        ? `/uploads/teams/${req.file.filename}`
+        : '';
+      const newTeam = new Team({ name, pilots, position, imageUrl });
+      await newTeam.save();
+      res.status(201).json(newTeam);
+    } catch (err) {
+      res.status(400).send('Error al crear equipo: ' + err.message);
+    }
+});
+
+// Actualizar equipo con imagen opcional
+app.put('/teams/:id',
+  teamUpload.single('image'),
+  async (req, res) => {
+    try {
+      const update = {
+        name: req.body.name,
+        pilots: req.body.pilots,
+        position: req.body.position
+      };
+      if (req.file) {
+        update.imageUrl = `/uploads/teams/${req.file.filename}`;
+      }
+      const updated = await Team.findByIdAndUpdate(
+        req.params.id,
+        update,
+        { new: true, runValidators: true }
+      );
+      if (!updated) return res.status(404).send('Equipo no encontrado');
+      res.json(updated);
+    } catch (err) {
+      res.status(400).send('Error al actualizar: ' + err.message);
+    }
+});
+
 
 // GET /teams/:id → devuelve un solo equipo
 app.get('/teams/:id', async (req, res) => {
@@ -460,66 +504,135 @@ app.post('/positions/bulk', async (req, res) => {
   }
 });
 
-// Configuración Multer para carpeta uploads/blog
-const blogStorage = multer.diskStorage({
-  destination: (req, file, cb) =>
-    cb(null, path.join(__dirname, 'uploads', 'blog')),
-  filename: (req, file, cb) => {
-    const name = Date.now() + '-' + Math.round(Math.random()*1e9)
-               + path.extname(file.originalname);
-    cb(null, name);
-  }
-});
-const blogUpload = multer({ storage: blogStorage });
+// ——— Blog (banner + múltiples imágenes) ———
 
-// GET /blog
+// 1) Configuración de Multer para separar banner e imágenes
+const blogUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const base = path.join(__dirname, 'uploads', 'blog');
+      // si viene banner → carpeta uploads/blog/banner
+      // si vienen images → uploads/blog/images
+      const sub = file.fieldname === 'banner' ? 'banner' : 'images';
+      const dir = path.join(base, sub);
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (_, f, cb) => {
+      cb(null, Date.now() + '-' + Math.round(Math.random()*1e9)
+                + path.extname(f.originalname));
+    }
+  })
+});
+
+// 2) Exponer estático banners e imágenes
+app.use(
+  '/uploads/blog/banner',
+  express.static(path.join(__dirname, 'uploads', 'blog', 'banner'))
+);
+app.use(
+  '/uploads/blog/images',
+  express.static(path.join(__dirname, 'uploads', 'blog', 'images'))
+);
+
+// 3) GET /blog → listado
 app.get('/blog', async (req, res) => {
   const list = await Blog.find().sort({ date: -1 });
-  // Devuelve URLs completas
   res.json(list.map(b => ({
     _id:     b._id,
     title:   b.title,
     date:    b.date,
     content: b.content,
-    images:  b.images.map(f => `/uploads/blog/${f}`)
+    banner:  b.banner  ? `/uploads/blog/banner/${b.banner}` : null,
+    images:  (b.images || []).map(f => `/uploads/blog/images/${f}`)
   })));
 });
 
-// POST /blog  (varias imágenes: campo name="images")
-app.post('/blog', blogUpload.array('images', 5), async (req, res) => {
-  const { title, date, content } = req.body;
-  const images = (req.files || []).map(f => f.filename);
-  const created = await Blog.create({ title, date, content, images });
-  res.status(201).json(created);
-});
-
-// PUT /blog/:id
-app.put('/blog/:id', blogUpload.array('images', 5), async (req, res) => {
-  const { title, date, content } = req.body;
-  const update = { title, date, content };
-  if (req.files && req.files.length) {
-    // Opcionalmente borrar las anteriores:
-    const old = await Blog.findById(req.params.id);
-    if (old?.images) {
-      old.images.forEach(f => {
-        const fp = path.join(__dirname, 'uploads', 'blog', f);
-        fs.unlink(fp, ()=>{});
-      });
-    }
-    update.images = req.files.map(f => f.filename);
-  }
-  const updated = await Blog.findByIdAndUpdate(req.params.id, update, { new: true });
-  res.json(updated);
-});
-
-// DELETE /blog/:id
-app.delete('/blog/:id', async (req, res) => {
-  const item = await Blog.findByIdAndDelete(req.params.id);
-  if (item?.images) {
-    item.images.forEach(f => {
-      const fp = path.join(__dirname, 'uploads', 'blog', f);
-      fs.unlink(fp, ()=>{});
+// 4) GET /blog/:id → detalle
+app.get('/blog/:id', async (req, res) => {
+  try {
+    const b = await Blog.findById(req.params.id);
+    if (!b) return res.status(404).send('Post no encontrado');
+    res.json({
+      _id:     b._id,
+      title:   b.title,
+      date:    b.date,
+      content: b.content,
+      banner:  b.banner  ? `/uploads/blog/banner/${b.banner}` : null,
+      images:  (b.images || []).map(f => `/uploads/blog/images/${f}`)
     });
+  } catch {
+    res.status(400).send('ID inválido');
   }
-  res.status(204).send();
+});
+
+// 5) POST /blog → crear con banner + hasta 5 imágenes
+app.post(
+  '/blog',
+  blogUpload.fields([
+    { name: 'banner', maxCount: 1 },
+    { name: 'images', maxCount: 20 }
+  ]),
+  async (req, res) => {
+    try {
+      const { title, date, content } = req.body;
+      const banner = req.files.banner?.[0]?.filename || null;
+      const images = (req.files.images || []).map(f => f.filename);
+      const created = await Blog.create({ title, date, content, banner, images });
+      res.status(201).json(created);
+    } catch (e) {
+      res.status(400).send(e.message);
+    }
+  }
+);
+
+// 6) PUT /blog/:id → actualizar (reemplaza banner e imágenes si subes nuevas)
+app.put(
+  '/blog/:id',
+  blogUpload.fields([
+    { name: 'banner', maxCount: 1 },
+    { name: 'images', maxCount: 20 }
+  ]),
+  async (req, res) => {
+    try {
+      const { title, date, content } = req.body;
+      const update = { title, date, content };
+
+      // Si sube nuevo banner, borra el anterior
+      if (req.files.banner) {
+        const old = await Blog.findById(req.params.id);
+        if (old?.banner) {
+          fs.unlinkSync(path.join(__dirname, 'uploads/blog/banner', old.banner));
+        }
+        update.banner = req.files.banner[0].filename;
+      }
+      // Si sube nuevas imágenes, borra las antiguas
+      if (req.files.images) {
+        const old = await Blog.findById(req.params.id);
+        (old?.images || []).forEach(f =>
+          fs.unlinkSync(path.join(__dirname, 'uploads/blog/images', f))
+        );
+        update.images = req.files.images.map(f => f.filename);
+      }
+
+      const updated = await Blog.findByIdAndUpdate(req.params.id, update, { new: true });
+      res.json(updated);
+    } catch (e) {
+      res.status(400).send(e.message);
+    }
+  }
+);
+
+// 7) DELETE /blog/:id → borra post y ficheros asociados
+app.delete('/blog/:id', async (req, res) => {
+  const b = await Blog.findByIdAndDelete(req.params.id);
+  if (b) {
+    if (b.banner) {
+      fs.unlinkSync(path.join(__dirname, 'uploads/blog/banner', b.banner));
+    }
+    (b.images || []).forEach(f =>
+      fs.unlinkSync(path.join(__dirname, 'uploads/blog/images', f))
+    );
+  }
+  res.status(204).end();
 });

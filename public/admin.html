@@ -65,12 +65,13 @@
     <section id="teams">
       <h2>Gestionar Equipos</h2>
 
-      <!-- Formulario individual -->
-      <form id="team-form">
+      <form id="team-form" enctype="multipart/form-data">
         <input type="hidden" id="team-id">
         <input type="text" id="team-name" placeholder="Nombre del equipo" required>
         <input type="text" id="team-pilots" placeholder="Pilotos (separados por comas)" required>
         <input type="number" id="team-position" placeholder="Posición" required>
+        <!-- Nueva línea: subida de imagen -->
+        <input type="file" id="team-image" name="image" accept="image/*">
         <button type="submit" id="team-submit-btn">Crear Equipo</button>
       </form>
 
@@ -209,10 +210,17 @@
       <h2>Gestionar Entradas de Blog</h2>
 
       <form id="blog-form" enctype="multipart/form-data">
-        <input type="hidden" id="blog-id">
-        <input type="text" id="blog-title" placeholder="Título" required>
-        <input type="date" id="blog-date" required>
-        <!-- Barra de herramientas sencilla -->
+        <input type="hidden" id="blog-id" name="id">
+
+        <!-- Título y fecha -->
+        <input type="text" id="blog-title" name="title" placeholder="Título" required>
+        <input type="date" id="blog-date" name="date" required>
+
+        <!-- Banner (portada) -->
+        <label for="blog-banner">Imagen de Portada (Banner)</label>
+        <input type="file" id="blog-banner" name="banner" accept="image/*">
+
+        <!-- Toolbar y contenido -->
         <div id="blog-toolbar">
           <button type="button" data-cmd="bold"><b>B</b></button>
           <button type="button" data-cmd="italic"><i>I</i></button>
@@ -223,16 +231,15 @@
           <button type="button" data-cmd="insertUnorderedList">• List</button>
         </div>
 
-        <!-- Área editable -->
         <div id="blog-content-editor" contenteditable="true"
           style="min-height:120px; border:1px solid #ccc; padding:0.5rem; border-radius:4px;">
         </div>
-
-        <!-- Campo oculto que usaremos para enviar el HTML al servidor -->
         <input type="hidden" id="blog-content" name="content">
 
-        <!-- permite múltiples: name debe coincidir con multer.array -->
+        <!-- Imágenes del artículo -->
+        <label for="blog-images">Imágenes del Artículo</label>
         <input type="file" id="blog-images" name="images" accept="image/*" multiple>
+
         <button type="submit" id="blog-submit-btn">Crear / Actualizar</button>
       </form>
 

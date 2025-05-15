@@ -1,0 +1,209 @@
+/* ——— Detalle del Blog ——— */
+.blog-post-detail {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+  color: #ddd;
+  box-sizing: border-box;
+
+  /* permite quiebres de línea en cadenas largas */
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Imagen destacada / banner */
+.blog-post-detail .blog-banner,
+.blog-post-detail .featured-image img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  filter: brightness(0.85);
+  transition: transform 0.4s ease;
+}
+.blog-post-detail .blog-banner:hover,
+.blog-post-detail .featured-image img:hover {
+  transform: scale(1.05);
+}
+
+/* Título principal */
+.blog-post-detail h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.75rem;
+  color: #fff;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+}
+
+/* Meta información (fecha) */
+.blog-post-detail .date {
+  color: #888;
+  font-size: 0.9rem;
+  font-weight: 300;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.75rem;
+}
+
+/* Contenido del artículo */
+.blog-post-detail .content {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+/* Subtítulos internos */
+.blog-post-detail .content h2,
+.blog-post-detail .content h3 {
+  font-family: 'Oswald', sans-serif;
+  color: #e50914;
+  margin: 2rem 0 1rem;
+  line-height: 1.2;
+}
+
+/* Párrafos: aseguran quiebre en palabras largas */
+.blog-post-detail .content p {
+  margin-bottom: 1.5rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Imágenes inline dentro del contenido */
+.blog-post-detail .content img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Galería de imágenes extra */
+.blog-post-detail .post-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.blog-post-detail .post-images img {
+  flex: 1 1 calc(33% - 0.5rem);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Botón “Volver al blog” */
+.blog-post-detail .back-link {
+  display: inline-block;
+  margin-top: 2rem;
+  background: #e50914;
+  color: #fff;
+  padding: 0.6rem 1.4rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.blog-post-detail .back-link:hover {
+  background: #b20710;
+  transform: scale(1.05);
+}
+
+/* — Responsive — */
+@media (max-width: 600px) {
+  .blog-post-detail h1 {
+    font-size: 2rem;
+  }
+  .blog-post-detail .content {
+    font-size: 1rem;
+  }
+  .blog-post-detail .post-images img {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+}
+
+/* ——— Botón “Volver” ——— */
+.back-link,
+.btn-back {
+  display: inline-block;
+  margin-top: 2rem;
+  background: #e50914;
+  color: #fff !important;
+  padding: 0.6rem 1.4rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.back-link:hover,
+.btn-back:hover {
+  background: #b20710;
+  transform: scale(1.05);
+}
+
+/* ——— Galería interna del artículo ——— */
+.post-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;       /* Centra las filas si sobra espacio */
+  margin-top: 2rem;
+}
+
+.post-images img {
+  flex: 1 1 calc(33% - 1rem);    /* 3 columnas con gap de 1rem */
+  max-width: calc(33% - 1rem);
+  width: 100%;
+  height: auto;
+  object-fit: cover;             /* Recorta si la proporción no encaja */
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease;
+}
+
+.post-images img:hover {
+  transform: scale(1.05);
+}
+
+/* ——— Lightbox para ampliar imágenes ——— */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: none;               /* oculto por defecto */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.image-modal-overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+  border-radius: 4px;
+  transition: transform 0.3s ease;
+}
+
+.image-modal-overlay img:hover {
+  transform: scale(1.02);
+}
+
+/* ——— Lightbox para ampliar imágenes ——— */
+.image-modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.image-modal-overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 4px;
+}

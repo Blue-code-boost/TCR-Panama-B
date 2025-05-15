@@ -1,73 +1,91 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Galería - TCR Panamá</title>
   <link rel="stylesheet" href="css/style-gallery.css">
   <link rel="stylesheet" href="css/style-footer.css">
+  <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <header>
     <h1>TCR Panamá</h1>
     <nav>
       <ul>
         <li><a href="index.html">Home</a></li>
-        <li><a href="teams.html">Teams</a></li>
-        <li><a href="info.html">Info</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="https://autodromopanama.com/mi-cuenta/">Register/login</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <section class="gallery-section">
-    <h2>Galería Multimedia</h2>
-    <div class="gallery-grid">
-      <img src="img/gallery/gallery1.jpg" alt="Carrera 1">
-      <img src="img/gallery/gallery2.jpg" alt="Carrera 2">
-      <img src="img/gallery/gallery3.jpg" alt="Carrera 3">
-    </div>
-  </section>
-
-<footer>
-  <div class="footer-content">
-    <div class="footer-logo">
-      <img src="img/logo.png" alt="TCR Panamá Logo" class="logo-footer">
-    </div>
-    <div class="footer-links">
-      <h3>Enlaces Rápidos</h3>
-      <ul>
-        <li><a href="index.html">Home</a></li>
         <li><a href="teams.html">Equipos</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li><a href="gallery.html">Galería</a></li>
         <li><a href="info.html">Información</a></li>
+        <li><a href="https://autodromopanama.com/mi-cuenta/" target="_blank">Register/login</a></li>
       </ul>
-    </div>
-    <div class="footer-socials">
-      <h3>Redes Sociales</h3>
-      <div class="social-icons">
-        <a href="#" target="_blank"><img src="img/facebook-icon.png" alt="Facebook"></a>
-        <a href="#" target="_blank"><img src="img/twitter-icon.png" alt="Twitter"></a>
-        <a href="#" target="_blank"><img src="img/instagram-icon.png" alt="Instagram"></a>
+    </nav>
+  </header>
+
+
+  <section class="gallery-section">
+    <h2>Galería Multimedia</h2>
+    <div id="gallery-list" class="gallery-grid"></div>
+  </section>
+  <!-- Lightbox Overlay (fuera de cualquier sección, al final del body) -->
+  <div id="image-modal-overlay" style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+">
+    <img src="" alt="Ampliada" style="
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+  ">
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">
+        <img src="img/logo.png" alt="TCR Panamá Logo" class="logo-footer">
+      </div>
+      <div class="footer-links">
+        <h3>Enlaces Rápidos</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="teams.html">Equipos</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="gallery.html">Galería</a></li>
+          <li><a href="info.html">Información</a></li>
+        </ul>
+      </div>
+      <div class="footer-socials">
+        <h3>Redes Sociales</h3>
+        <div class="social-icons">
+          <a href="#" target="_blank"><img src="img/facebook-icon.png" alt="Facebook"></a>
+          <a href="#" target="_blank"><img src="img/twitter-icon.png" alt="Twitter"></a>
+          <a href="#" target="_blank"><img src="img/instagram-icon.png" alt="Instagram"></a>
+        </div>
+      </div>
+      <div class="footer-contact">
+        <h3>Contacto</h3>
+        <ul>
+          <li>Email: <a href="mailto:info@tcrpanama.com">info@tcrpanama.com</a></li>
+          <li>Teléfono: <a href="tel:+50712345678">+507 123 456 78</a></li>
+        </ul>
       </div>
     </div>
-    <div class="footer-contact">
-      <h3>Contacto</h3>
-      <ul>
-        <li>Email: <a href="mailto:info@tcrpanama.com">info@tcrpanama.com</a></li>
-        <li>Teléfono: <a href="tel:+50712345678">+507 123 456 78</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <p>&copy; <span id="current-year"></span> TCR Panamá. Todos los derechos reservados.</p>
+      <p>Desarrollado por <span style="color: #0098ff;">Blue</span>Code</p>
     </div>
-  </div>
-  <div class="footer-bottom">
-    <p>&copy; <span id="current-year"></span> TCR Panamá. Todos los derechos reservados.</p>
-    <p>Desarrollado por <span style="color: #0098ff;">Blue</span>Code</p>
-  </div>
-</footer>
+  </footer>
+  <script src="js/main.js"></script>
 </body>
+
 </html>

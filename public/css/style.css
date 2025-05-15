@@ -40,8 +40,7 @@ nav a:hover {
 }
 
 .hero {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.9)),
-              url('../img/hero-banner.jpg') no-repeat center center/cover;
+  background: no-repeat center center/cover;
   text-align: center;
   padding: 150px 20px 120px;
   font-family: 'Oswald', sans-serif;
@@ -105,6 +104,19 @@ nav a:hover {
   width: 250px;
   height: 80px;
   animation: logoAnimation 1s ease-out forwards;
+}
+
+.hero-overlay {
+  position: relative;
+  z-index: 2; /* para estar encima del ::before */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Sólo para el contenedor interno del Hero dinámico */
+.hero-overlay {
+  text-align: center;
+  padding: 2rem;
 }
 
 @keyframes logoAnimation {
@@ -275,3 +287,239 @@ nav a:hover {
     margin: 10px auto;
   }
 }
+
+/* Barra de navegación sticky */
+.site-header {
+  position: sticky; /* o fixed si prefieres que siempre esté en pantalla */
+  top: 0;
+  width: 100%;
+  background-color: #111; /* igual que tu header actual */
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000; /* por encima del resto */
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.site-header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.site-header nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.site-header nav a:hover {
+  color: #e50914;
+  transform: scale(1.1);
+}
+
+/* Ajustes para que Register/login no se corte */
+.site-header nav ul {
+  display: flex;
+  flex-wrap: wrap;      /* permite que los ítems bajen a otra línea si falta espacio */
+  gap: 10px;            /* reduce el espacio entre enlaces */
+  margin: 0;
+  padding: 0;
+}
+
+.site-header nav a {
+  white-space: nowrap;  /* evita que los enlaces se rompan a mitad de palabra */
+  font-size: 14px;      /* ajusta ligeramente el tamaño para que todo quepa */
+  padding: 0 6px;       /* un poquito de espacio interno */
+}
+
+/* Ajustes finales para que Register/login no se corte */
+.site-header nav ul {
+  flex-wrap: wrap;    /* deja que los ítems bajen si no caben */
+  gap: 8px;           /* un poco menos de espacio entre ellos */
+}
+
+.site-header nav a {
+  /* Haz que la fuente escale con el ancho de la ventana */
+  font-size: clamp(12px, 1.2vw, 14px);
+  white-space: nowrap;   /* sigue en una sola línea */
+  padding: 0 4px;        /* menos padding lateral */
+}
+
+/* Si aún así no cabe, en pantallas muy pequeñas: */
+@media (max-width: 500px) {
+  .site-header {
+    flex-direction: column;  /* coloca logo arriba, nav debajo */
+    align-items: flex-start;
+    padding: 10px;
+  }
+  .site-header nav ul {
+    justify-content: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+  }
+}
+
+/* Ajuste extremo para que todo quepa sin scroll ni wrap */
+
+/* 1) Reduce gap al mínimo */
+.site-header nav ul {
+  gap: 4px !important;
+}
+
+/* 2) Ajusta padding interno de cada enlace */
+.site-header nav a {
+  padding: 0 3px !important;
+}
+
+/* 3) Escala la fuente según el ancho, pero no baje de 10px */
+.site-header nav a {
+  font-size: clamp(10px, 1.2vw, 14px) !important;
+  white-space: nowrap;
+}
+
+/* 4) Reduce el padding del header */
+.site-header {
+  padding: 10px 15px !important;
+}
+
+/* 5) Si aún no cabe, reduce el tamaño del h1 */
+.site-header h1 {
+  font-size: clamp(16px, 2.5vw, 24px) !important;
+}
+
+/* 6) Asegura que nav ul no haga wrap */
+.site-header nav ul {
+  flex-wrap: nowrap !important;
+}
+
+/* ————— Forzar visibilidad completa de todos los ítems del nav ————— */
+.site-header,
+.site-header nav,
+.site-header nav ul {
+  overflow: visible !important;    /* que nada oculte contenido sobrante */
+}
+
+.site-header nav ul {
+  display: flex !important;
+  flex-wrap: nowrap !important;    /* que nunca baje de línea */
+  gap: 20px !important;             /* espacio estándar */
+}
+
+.site-header nav ul li {
+  flex: 0 0 auto !important;       /* ni crece ni se encoge */
+}
+
+.site-header nav a {
+  white-space: nowrap !important;   /* no partir el texto jamás */
+  display: inline-block !important; /* fuerza el ancho de contenido */
+}
+
+/* Compensar el contenido bajo el header */
+body {
+  padding-top: 80px; /* altura aproximada del header */
+}
+/* 1) Que el nav no se encoja dentro del header */
+.site-header nav {
+  flex-shrink: 0;           /* no permitas que el nav se reduzca */
+  overflow-x: auto;         /* permite scroll horizontal */
+  overflow-y: hidden;       /* sin scroll vertical */
+  -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
+}
+
+/* 2) Fuerza la lista en una sola línea */
+.site-header nav ul {
+  display: flex;
+  flex-wrap: nowrap;        /* nunca baje de línea */
+  gap: 20px;                /* espacio estándar */
+}
+
+/* 3) Oculta la barra de scroll pero mantiene activa la funcionalidad */
+.site-header nav::-webkit-scrollbar {
+  display: none;
+}
+.site-header nav {
+  -ms-overflow-style: none; /* IE y Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+
+/* Reemplaza todos los .site-header por header */
+header {
+  position: sticky;
+  top: 0;
+  /* … resto de reglas … */
+}
+
+header nav {
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+header nav ul {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+}
+
+/* y así con los demás selectores */
+/* —— Resultados por Fecha — estilos mejorados —— */
+.results-section {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.result-date {
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.result-date h4 {
+  margin: 0 0 0.75rem;
+  color: #e50914;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.podium {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.podium li {
+  display: flex;
+  align-items: center;
+  margin: 0.25rem 0;
+  font-size: 1rem;
+  color: #ccc;
+}
+
+.medal {
+  display: inline-block;
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+  width: 1.4em;   /* espacio fijo para alinear */
+  text-align: center;
+}
+
+.gold   { color: #FFD700; } /* opcional, resaltar */
+.silver { color: #C0C0C0; }
+.bronze { color: #CD7F32; }
+

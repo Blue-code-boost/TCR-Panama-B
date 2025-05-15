@@ -766,3 +766,13 @@ form button:hover { background: #007acc; }
 #hero-admin button:hover {
   background-color: #0056b3;
 }
+
+/* admin.css */
+.team-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
