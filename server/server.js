@@ -1,664 +1,295 @@
 // server/server.js
-const path     = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-const express  = require('express');
-const mongoose = require('mongoose');
-const cors     = require('cors');
+// ── 1. CABECERA Y CONFIGURACIONES GLOBALES ───────────────────────
+require('dotenv').config();
+const path     = require('path');
 const fs       = require('fs');
+const express  = require('express');
+const session  = require('express-session');
+const bcrypt   = require('bcrypt');
+const cors     = require('cors');
+const mongoose = require('mongoose');
 const multer   = require('multer');
 
 // Modelos
-const Team     = require('./models/team');
-const Event    = require('./models/event');     // ¡ojo: event.js, no Event.js !
-const News     = require('./models/news');
-const Gallery  = require('./models/gallery');
-const Info     = require('./models/info');
-const Blog     = require('./models/blog');
-const Position = require('./models/position');
-const Result   = require('./models/result');
+const Team      = require('./models/team');
+const Event     = require('./models/event');
+const News      = require('./models/news');
+const Gallery   = require('./models/gallery');
+const Info      = require('./models/info');
+const Blog      = require('./models/blog');
+const Position  = require('./models/position');
+const Result    = require('./models/result');
 const Countdown = require('./models/countdown');
-// Modelo Hero
-const Hero = require('./models/hero');
-
-// Carpeta de uploads para Hero
-const heroDir = path.join(__dirname, 'uploads', 'hero');
-fs.mkdirSync(heroDir, { recursive: true });
-
-// Configuración Multer para Hero
-const heroStorage = multer.diskStorage({
-  destination: (_, __, cb) => cb(null, heroDir),
-  filename:    (_, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-const heroUpload = multer({ storage: heroStorage });
-
+const Hero      = require('./models/hero');
 
 const app  = express();
 const port = process.env.PORT || 3000;
 
-// Crear carpetas de uploads
-const galleryDir = path.join(__dirname, 'uploads', 'gallery');
-const blogDir    = path.join(__dirname, 'uploads', 'blog');
-fs.mkdirSync(galleryDir, { recursive: true });
-fs.mkdirSync(blogDir,    { recursive: true });
-
-// Middlewares generales (una sola vez)
-app.use(cors());
+// ── SESIONES, CORS Y BODY PARSE ─────────────────────────────────
+app.use(cors({
+  origin: 'http://localhost:3000',  // ajusta al origen de tu frontend
+  credentials: true
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'cámbialo_por_un_secreto_largo',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, maxAge: 3600000 }
+}));
 
-// Carpeta de uploads para Multer
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ── CONEXIÓN A MONGODB ─────────────────────────────────────────
+if (!process.env.MONGO_URI) {
+  console.error('❌ Falta la variable MONGO_URI en .env');
+  process.exit(1);
+}
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('✅ Conectado a MongoDB'))
+  .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
-// Sirve todo el frontend estático (HTML, JS, CSS, img, templates...)
-app.use(express.static(path.join(__dirname, '../public')));
+// ── 2. AUTENTICACIÓN (LOGIN / LOGOUT) ───────────────────────────
 
-// Exponer public/templates en /templates (opcional, porque ya cae bajo public/)
-app.use(
-  '/templates',
-  express.static(path.join(__dirname, '../public/templates'))
+// Usuarios hard-coded (puedes mover hashes a .env si quieres)
+const users = [
+  { username: 'admin1', hash: '$2b$10$qVd5qSlyjm3cgsbS/0XjaOD3vRVkXq2t1bSdiCtf6NmX6gBfQZljW' },
+  { username: 'admin2', hash: '$2b$10$XmRiXszoaH7tFtj2k9pFqe6pQMBSIVldZP.6s0Yv4ka2j.2gvrx9G' }
+];
+
+// Ruta de login
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username);
+  if (!user || !(await bcrypt.compare(password, user.hash))) {
+    return res.status(401).json({ error: 'Credenciales inválidas' });
+  }
+  req.session.user = { username };
+  res.json({ success: true });
+});
+
+// Ruta de logout
+app.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) console.error(err);
+    res.json({ success: true });
+  });
+});
+
+// Middleware para proteger rutas
+function requireLogin(req, res, next) {
+  if (req.session.user) return next();
+  res.status(401).json({ error: 'No autenticado' });
+}
+
+// ── 3. UPLOADS Y ARCHIVOS ESTÁTICOS ─────────────────────────────
+
+// Directorio base para todos los uploads
+const UPLOAD_ROOT = path.join(__dirname, 'uploads');
+// Subcarpetas que usaremos
+['hero', 'gallery', 'teams', 'blog/banner', 'blog/images'].forEach(sub =>
+  fs.mkdirSync(path.join(UPLOAD_ROOT, sub), { recursive: true })
 );
 
-// Valida que la variable de entorno exista
+// Configuración genérica de Multer para un subdir dado
+const storageFor = subdir => multer.diskStorage({
+  destination: (_, __, cb) => cb(null, path.join(UPLOAD_ROOT, subdir)),
+  filename:    (_, file, cb) => {
+    const unique = Date.now() + '-' + Math.random().toString().slice(2);
+    cb(null, unique + path.extname(file.originalname));
+  }
+});
+
+// Differentes instancias para cada uso
+const uploadHero    = multer({ storage: storageFor('hero') });
+const uploadGallery = multer({ storage: storageFor('gallery') });
+const uploadTeams   = multer({ storage: storageFor('teams') });
+const uploadBlog    = multer({ storage: storageFor('blog/banner') });
+
+// Servir carpeta de uploads bajo /uploads
+app.use('/uploads', express.static(UPLOAD_ROOT));
+// Servir frontend público
+app.use(express.static(path.join(__dirname, '../public')));
+// Servir plantillas sueltas (si las usas)
+app.use('/templates', express.static(path.join(__dirname, '../public/templates')));
+// ── 4. CONEXIÓN A MONGODB ───────────────────────────────────────
+
 if (!process.env.MONGO_URI) {
   console.error('❌ Falta la variable MONGO_URI en .env');
   process.exit(1);
 }
 
-// ——— Hero CRUD ——— //
-
-// GET /hero → obtiene el único Hero
-app.get('/hero', async (req, res) => {
-  const hero = await Hero.findOne();
-  res.json(hero);
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser:    true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Conectado a MongoDB'))
+.catch(err => {
+  console.error('❌ Error conectando a MongoDB:', err);
+  process.exit(1);
 });
 
-// GET /hero/:id → obtiene Hero por ID
-app.get('/hero/:id', async (req, res) => {
-  try {
-    const hero = await Hero.findById(req.params.id);
-    if (!hero) return res.status(404).end();
-    res.json(hero);
-  } catch {
-    res.status(400).end();
-  }
-});
+// ── 5. RUTAS PROTEGIDAS (CRUD) ─────────────────────────────────
 
-// POST /hero → crea Hero (sólo uno)
-app.post('/hero', heroUpload.single('image'), async (req, res) => {
-  try {
+// — Hero CRUD —
+app.get('/hero',            async (req, res) => res.json(await Hero.findOne()));
+app.post('/hero', uploadHero.single('image'),
+  async (req, res) => {
     const data = req.body;
     if (req.file) data.imageUrl = `/uploads/hero/${req.file.filename}`;
-    const created = await Hero.create(data);
-    res.status(201).json(created);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    res.status(201).json(await Hero.create(data));
 });
-
-// PUT /hero/:id → actualiza Hero existente
-app.put('/hero/:id', heroUpload.single('image'), async (req, res) => {
-  try {
+app.put('/hero/:id', uploadHero.single('image'),
+  async (req, res) => {
     const data = req.body;
     if (req.file) data.imageUrl = `/uploads/hero/${req.file.filename}`;
-    const updated = await Hero.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
-    if (!updated) return res.status(404).end();
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    const h = await Hero.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
+    if (!h) return res.status(404).end();
+    res.json(h);
 });
 
-// GET /countdown → devuelve la única configuración de countdown
+// — Countdown CRUD —
 app.get('/countdown', async (req, res) => {
-  let cfg = await Countdown.findOne();
-  if (!cfg) {
-    // Si no existe todavía, creamos una con fecha por defecto
-    cfg = await Countdown.create({ target: new Date() });
-  }
-  res.json({ target: cfg.target });
+  let c = await Countdown.findOne();
+  if (!c) c = await Countdown.create({ target: new Date() });
+  res.json({ target: c.target });
 });
-
-// PUT /countdown → actualiza la fecha objetivo
-app.put('/countdown', express.json(), async (req, res) => {
+app.put('/countdown', async (req, res) => {
   const { target } = req.body;
   if (!target) return res.status(400).json({ error: 'Falta target' });
-  let cfg = await Countdown.findOne();
-  if (!cfg) {
-    cfg = await Countdown.create({ target });
-  } else {
-    cfg.target = target;
-    await cfg.save();
-  }
-  res.json({ target: cfg.target });
+  let c = await Countdown.findOne();
+  if (!c) c = await Countdown.create({ target });
+  else { c.target = target; await c.save(); }
+  res.json({ target: c.target });
 });
-// Conexión a MongoDB y arranque del servidor
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('✅ Conectado a MongoDB');
-    app.listen(port, () => console.log(`🚀 Servidor corriendo en http://localhost:${port}`));
-  })
-  .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
-// storage Multer para galería (usa galleryDir definido arriba)
-const storage = multer.diskStorage({
-  destination: (_, __, cb) => cb(null, galleryDir),
-  filename:    (_, file, cb) => {
-    // Timestamp + extensión original
-    const name = Date.now() + path.extname(file.originalname);
-    cb(null, name);
-  }
-});
-const upload = multer({ storage });
-
-
-// servir carpeta /uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-app.use(cors());                        // <-- habilitar CORS
-app.use(express.json());
-// sirve todo lo que esté en la raíz (admin.html, css/, js/, etc)
-app.use(express.static(path.join(__dirname)));
-
-// Middleware para procesar solicitudes JSON
-app.use(express.json());
-
-
-
-// Storage Multer para imágenes de Team
-const teamStorage = multer.diskStorage({
-  destination: (_, __, cb) =>
-    cb(null, path.join(__dirname, 'uploads', 'teams')),
-  filename: (_, file, cb) => {
-    const name = Date.now() + '-' + Math.round(Math.random()*1e9)
-               + path.extname(file.originalname);
-    cb(null, name);
-  }
-});
-const teamUpload = multer({ storage: teamStorage });
-
-// Asegúrate de crear la carpeta
-fs.mkdirSync(path.join(__dirname, 'uploads', 'teams'), { recursive: true });
-
-// Crear equipo con imagen opcional
-app.post('/teams',
-  teamUpload.single('image'),
+// — Teams CRUD —
+app.get('/teams',     async (req, res) => res.json(await Team.find()));
+app.get('/teams/:id', async (req, res) => res.json(await Team.findById(req.params.id)));
+app.post('/teams', uploadTeams.single('image'),
   async (req, res) => {
-    try {
-      const { name, pilots, position } = req.body;
-      const imageUrl = req.file
-        ? `/uploads/teams/${req.file.filename}`
-        : '';
-      const newTeam = new Team({ name, pilots, position, imageUrl });
-      await newTeam.save();
-      res.status(201).json(newTeam);
-    } catch (err) {
-      res.status(400).send('Error al crear equipo: ' + err.message);
-    }
+    const { name, pilots, position } = req.body;
+    const imageUrl = req.file ? `/uploads/teams/${req.file.filename}` : '';
+    res.status(201).json(await Team.create({ name, pilots, position, imageUrl }));
 });
-
-// Actualizar equipo con imagen opcional
-app.put('/teams/:id',
-  teamUpload.single('image'),
+app.put('/teams/:id', uploadTeams.single('image'),
   async (req, res) => {
-    try {
-      const update = {
-        name: req.body.name,
-        pilots: req.body.pilots,
-        position: req.body.position
-      };
-      if (req.file) {
-        update.imageUrl = `/uploads/teams/${req.file.filename}`;
-      }
-      const updated = await Team.findByIdAndUpdate(
-        req.params.id,
-        update,
-        { new: true, runValidators: true }
-      );
-      if (!updated) return res.status(404).send('Equipo no encontrado');
-      res.json(updated);
-    } catch (err) {
-      res.status(400).send('Error al actualizar: ' + err.message);
-    }
+    const u = { ...req.body };
+    if (req.file) u.imageUrl = `/uploads/teams/${req.file.filename}`;
+    res.json(await Team.findByIdAndUpdate(req.params.id, u, { new: true, runValidators: true }));
 });
-
-
-// GET /teams/:id → devuelve un solo equipo
-app.get('/teams/:id', async (req, res) => {
-    try {
-      const team = await Team.findById(req.params.id);
-      if (!team) return res.status(404).send('Equipo no encontrado');
-      res.json(team);
-    } catch (err) {
-      res.status(400).send('ID inválido');
-    }
-  });
-  
-// PUT /teams/:id → actualiza un equipo
-app.put('/teams/:id', async (req, res) => {
-    try {
-      const updated = await Team.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true, runValidators: true }
-      );
-      if (!updated) return res.status(404).send('Equipo no encontrado');
-      res.json(updated);
-    } catch (err) {
-      res.status(400).send('Error al actualizar: ' + err.message);
-    }
-  });
-
-// DELETE /teams/:id → elimina un equipo
 app.delete('/teams/:id', async (req, res) => {
-    try {
-      const deleted = await Team.findByIdAndDelete(req.params.id);
-      if (!deleted) return res.status(404).send('Equipo no encontrado');
-      res.send('Equipo eliminado');
-    } catch (err) {
-      res.status(400).send('ID inválido');
-    }
-  });
-
-  // Rutas Eventos
-app.get('/events', async (req, res) => {
-  const evs = await Event.find();
-  res.json(evs);
-});
-app.get('/events/:id', async (req, res) => {
-  const ev = await Event.findById(req.params.id);
-  res.json(ev);
-});
-app.post('/events', async (req, res) => {
-  const created = await Event.create(req.body);
-  res.status(201).json(created);
-});
-app.put('/events/:id', async (req, res) => {
-  const updated = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
-});
-app.delete('/events/:id', async (req, res) => {
-  await Event.findByIdAndDelete(req.params.id);
-  res.status(204).send();
-});
-
-// Bulk
-app.post('/events/bulk', async (req, res) => {
-  const docs = req.body.map(e => ({
-    name: e.name,
-    date: new Date(e.date),
-    location: e.location
-  }));
-  await Event.insertMany(docs);
-  res.status(201).send('Bulk events imported');
-});
-
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.send('¡Hola, mundo! Conectado a MongoDB.');
-});
-
-// Ruta para obtener todos los equipos
-app.get('/teams', async (req, res) => {
-    try {
-      const teams = await Team.find();      // Trae todos los documentos
-      res.status(200).json(teams);          // Devuélvelos en formato JSON
-    } catch (err) {
-      res.status(500).send('Error al obtener equipos: ' + err.message);
-    }
-  });
-
-// Bulk insert
-app.post('/teams/bulk', async (req, res) => {
-  try {
-    const docs = req.body.map(item => ({
-      name: item.name,
-      pilots: (item.pilots || '').split(',').map(s => s.trim()),
-      position: Number(item.position)
-    }));
-    await Team.insertMany(docs);
-    res.status(201).send('Bulk import completed');
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});  
-
-// GET /news — todas las noticias ordenadas por fecha desc
-app.get('/news', async (req, res) => {
-  const list = await News.find().sort({ date: -1 });
-  res.json(list);
-});
-
-// POST /news — crear noticia (manejo de errores y validación)
-app.post('/news', express.json(), async (req, res) => {
-  try {
-    const { title, date, description } = req.body;
-    const created = await News.create({ title, date, description });
-    return res.status(201).json(created);
-  } catch (err) {
-    console.error('❌ Error creando noticia:', err);
-    // Devuelve un 400 con el mensaje de validación
-    return res.status(400).json({ error: err.message });
-  }
-});
-
-
-// PUT /news/:id — actualizar
-app.put('/news/:id', express.json(), async (req, res) => {
-  const { title, date, description } = req.body;
-  const updated = await News.findByIdAndUpdate(
-    req.params.id,
-    { title, date, description },
-    { new: true }
-  );
-  res.json(updated);
-});
-
-// DELETE /news/:id — borrar
-app.delete('/news/:id', async (req, res) => {
-  await News.findByIdAndDelete(req.params.id);
-  res.status(204).send();
-});
-
-// Bulk upload Noticias (ajustado para usar `description`)
-app.post('/news/bulk', express.json(), async (req, res) => {
-  try {
-    // Mapear cada fila al campo `description` que exige tu esquema
-    const docs = req.body.map(n => ({
-      title:       n.title,
-      date:        new Date(n.date),
-      description: n.content   // ← ahora va aquí
-    }));
-
-    // Inserción masiva con validación
-    const result = await News.insertMany(docs, { ordered: false });
-    res.status(201).json({ insertedCount: result.length });
-  } catch (err) {
-    console.error('❌ Error en bulk /news:', err);
-    // Si falla validación, devuelves 400 con detalles
-    res.status(400).json({ error: err.message });
-  }
-});
-
-
-// Listar imágenes
-app.get('/gallery', async (req, res) => {
-  const items = await Gallery.find().sort({ date: -1 });
-  res.json(items);
-});
-
-// Subir imagen individual
-app.post('/gallery', upload.single('image'), async (req, res) => {
-  const caption = req.body.caption || '';
-  const filename = req.file.filename;
-  const url = `/uploads/gallery/${filename}`;
-  const item = await Gallery.create({ filename, url, caption });
-  res.status(201).json(item);
-});
-
-// DELETE /gallery/:id
-app.delete('/gallery/:id', async (req, res) => {
-  try {
-    // 1. Busca y elimina el documento de MongoDB
-    const item = await Gallery.findByIdAndDelete(req.params.id);
-    if (!item) {
-      return res.status(404).send('Item not found');
-    }
-
-    // 2. Borra el fichero físico (ajusta uploadsDir si tu carpeta está fuera de js/)
-    // Si tu uploads están dentro de js/uploads/gallery, usa:
-    const filePath = path.join(__dirname, 'uploads', 'gallery', item.filename);
-    // Si en cambio los tienes en root/uploads/gallery, usa:
-    // const filePath = path.join(__dirname, '..', 'uploads', 'gallery', item.filename);
-
-    fs.unlink(filePath, err => {
-      if (err) {
-        // Si no existe el fichero, solo lo logueamos pero no devolvemos error
-        console.warn('⚠️ No se pudo borrar el fichero:', filePath, err.message);
-      } else {
-        console.log('🗑️ Fichero borrado:', filePath);
-      }
-    });
-
-    // 3. Responde con 204 No Content
-    res.status(204).send();
-  } catch (err) {
-    console.error('Error en DELETE /gallery/:id', err);
-    res.status(500).send('Server error');
-  }
-});
-
-// Listar bloques de info
-app.get('/info', async (req, res) => {
-  const items = await Info.find().sort({ createdAt: 1 });
-  res.json(items);
-});
-
-// Crear/Actualizar bloque
-app.post('/info', async (req, res) => {
-  const { id, title, content } = req.body;
-  if (id) {
-    const updated = await Info.findByIdAndUpdate(id, { title, content }, { new: true });
-    return res.json(updated);
-  }
-  const created = await Info.create({ title, content });
-  res.status(201).json(created);
-});
-
-// Eliminar bloque
-app.delete('/info/:id', async (req, res) => {
-  await Info.findByIdAndDelete(req.params.id);
-  res.status(204).send();
-});
-
-// Listar posiciones
-app.get('/positions', async (req, res) => {
-  const list = await Position.find().sort({ position: 1 });
-  res.json(list);
-});
-
-// Crear posición
-app.post('/positions', async (req, res) => {
-  const created = await Position.create(req.body);
-  res.status(201).json(created);
-});
-
-// Actualizar posición
-app.put('/positions/:id', async (req, res) => {
-  const updated = await Position.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
-});
-
-// Borrar posición
-app.delete('/positions/:id', async (req, res) => {
-  await Position.findByIdAndDelete(req.params.id);
-  res.status(204).send();
-});
-
-
-// Listar resultados
-app.get('/results', async (req, res) => {
-  const list = await Result.find().sort({ date: -1 });
-  res.json(list);
-});
-
-// Crear resultado
-app.post('/results', async (req, res) => {
-  const created = await Result.create(req.body);
-  res.status(201).json(created);
-});
-
-// Actualizar resultado
-app.put('/results/:id', async (req, res) => {
-  const updated = await Result.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
-});
-
-// Borrar resultado
-app.delete('/results/:id', async (req, res) => {
-  await Result.findByIdAndDelete(req.params.id);
-  res.status(204).send();
-});
-
-// Bulk upload de posiciones desde Excel (CSV/TSV convertido)
-const xlsx = require('xlsx');
-
-// POST /positions/bulk
-app.post('/positions/bulk', async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).send('Archivo no proporcionado');
-    }
-    // Leer el workbook y la primera hoja
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    // Validar y mapear filas
-    const toInsert = rows.map(r => ({
-      position: r.position,
-      pilot:    r.pilot,
-      team:     r.team,
-      points:   r.points
-    }));
-
-    // Insertar en Mongo
-    const result = await Position.insertMany(toInsert);
-    res.status(201).json({ inserted: result.length });
-  } catch (err) {
-    console.error('Error en POST /positions/bulk', err);
-    res.status(500).send('Error al procesar la importación');
-  }
-});
-
-// ——— Blog (banner + múltiples imágenes) ———
-
-// 1) Configuración de Multer para separar banner e imágenes
-const blogUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const base = path.join(__dirname, 'uploads', 'blog');
-      // si viene banner → carpeta uploads/blog/banner
-      // si vienen images → uploads/blog/images
-      const sub = file.fieldname === 'banner' ? 'banner' : 'images';
-      const dir = path.join(base, sub);
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (_, f, cb) => {
-      cb(null, Date.now() + '-' + Math.round(Math.random()*1e9)
-                + path.extname(f.originalname));
-    }
-  })
-});
-
-// 2) Exponer estático banners e imágenes
-app.use(
-  '/uploads/blog/banner',
-  express.static(path.join(__dirname, 'uploads', 'blog', 'banner'))
-);
-app.use(
-  '/uploads/blog/images',
-  express.static(path.join(__dirname, 'uploads', 'blog', 'images'))
-);
-
-// 3) GET /blog → listado
-app.get('/blog', async (req, res) => {
-  const list = await Blog.find().sort({ date: -1 });
-  res.json(list.map(b => ({
-    _id:     b._id,
-    title:   b.title,
-    date:    b.date,
-    content: b.content,
-    banner:  b.banner  ? `/uploads/blog/banner/${b.banner}` : null,
-    images:  (b.images || []).map(f => `/uploads/blog/images/${f}`)
-  })));
-});
-
-// 4) GET /blog/:id → detalle
-app.get('/blog/:id', async (req, res) => {
-  try {
-    const b = await Blog.findById(req.params.id);
-    if (!b) return res.status(404).send('Post no encontrado');
-    res.json({
-      _id:     b._id,
-      title:   b.title,
-      date:    b.date,
-      content: b.content,
-      banner:  b.banner  ? `/uploads/blog/banner/${b.banner}` : null,
-      images:  (b.images || []).map(f => `/uploads/blog/images/${f}`)
-    });
-  } catch {
-    res.status(400).send('ID inválido');
-  }
-});
-
-// 5) POST /blog → crear con banner + hasta 5 imágenes
-app.post(
-  '/blog',
-  blogUpload.fields([
-    { name: 'banner', maxCount: 1 },
-    { name: 'images', maxCount: 20 }
-  ]),
-  async (req, res) => {
-    try {
-      const { title, date, content } = req.body;
-      const banner = req.files.banner?.[0]?.filename || null;
-      const images = (req.files.images || []).map(f => f.filename);
-      const created = await Blog.create({ title, date, content, banner, images });
-      res.status(201).json(created);
-    } catch (e) {
-      res.status(400).send(e.message);
-    }
-  }
-);
-
-// 6) PUT /blog/:id → actualizar (reemplaza banner e imágenes si subes nuevas)
-app.put(
-  '/blog/:id',
-  blogUpload.fields([
-    { name: 'banner', maxCount: 1 },
-    { name: 'images', maxCount: 20 }
-  ]),
-  async (req, res) => {
-    try {
-      const { title, date, content } = req.body;
-      const update = { title, date, content };
-
-      // Si sube nuevo banner, borra el anterior
-      if (req.files.banner) {
-        const old = await Blog.findById(req.params.id);
-        if (old?.banner) {
-          fs.unlinkSync(path.join(__dirname, 'uploads/blog/banner', old.banner));
-        }
-        update.banner = req.files.banner[0].filename;
-      }
-      // Si sube nuevas imágenes, borra las antiguas
-      if (req.files.images) {
-        const old = await Blog.findById(req.params.id);
-        (old?.images || []).forEach(f =>
-          fs.unlinkSync(path.join(__dirname, 'uploads/blog/images', f))
-        );
-        update.images = req.files.images.map(f => f.filename);
-      }
-
-      const updated = await Blog.findByIdAndUpdate(req.params.id, update, { new: true });
-      res.json(updated);
-    } catch (e) {
-      res.status(400).send(e.message);
-    }
-  }
-);
-
-// 7) DELETE /blog/:id → borra post y ficheros asociados
-app.delete('/blog/:id', async (req, res) => {
-  const b = await Blog.findByIdAndDelete(req.params.id);
-  if (b) {
-    if (b.banner) {
-      fs.unlinkSync(path.join(__dirname, 'uploads/blog/banner', b.banner));
-    }
-    (b.images || []).forEach(f =>
-      fs.unlinkSync(path.join(__dirname, 'uploads/blog/images', f))
-    );
-  }
+  await Team.findByIdAndDelete(req.params.id);
   res.status(204).end();
 });
+
+// — Events CRUD —
+app.get('/events',     async (req, res) => res.json(await Event.find()));
+app.get('/events/:id', async (req, res) => res.json(await Event.findById(req.params.id)));
+app.post('/events',    async (req, res) => res.status(201).json(await Event.create(req.body)));
+app.put('/events/:id', async (req, res) => res.json(await Event.findByIdAndUpdate(req.params.id, req.body, { new: true })));
+app.delete('/events/:id', async (req, res) => {
+  await Event.findByIdAndDelete(req.params.id);
+  res.status(204).end();
+});
+app.post('/events/bulk', async (req, res) => {
+  const docs = req.body.map(e => ({ name: e.name, date: new Date(e.date), location: e.location }));
+  await Event.insertMany(docs);
+  res.status(201).end();
+});
+
+// — News CRUD —
+app.get('/news',            async (req, res) => res.json(await News.find().sort({ date: -1 })));
+app.post('/news',           async (req, res) => res.status(201).json(await News.create(req.body)));
+app.put('/news/:id',        async (req, res) => res.json(await News.findByIdAndUpdate(req.params.id, req.body, { new: true })));
+app.delete('/news/:id',     async (req, res) => { await News.findByIdAndDelete(req.params.id); res.status(204).end(); });
+app.post('/news/bulk',      async (req, res) => {
+  const docs = req.body.map(n => ({ title: n.title, date: new Date(n.date), description: n.content }));
+  const r = await News.insertMany(docs);
+  res.status(201).json({ inserted: r.length });
+});
+
+// — Gallery CRUD —
+app.get('/gallery',         async (req, res) => res.json(await Gallery.find()));
+app.post('/gallery', uploadGallery.single('image'),
+  async (req, res) => {
+    const item = await Gallery.create({
+      filename: req.file.filename,
+      url:      `/uploads/gallery/${req.file.filename}`,
+      caption:  req.body.caption || ''
+    });
+    res.status(201).json(item);
+});
+app.delete('/gallery/:id',  async (req, res) => { await Gallery.findByIdAndDelete(req.params.id); res.status(204).end(); });
+
+// — Info CRUD —
+app.get('/info',            async (req, res) => res.json(await Info.find().sort({ createdAt: 1 })));
+app.post('/info',           async (req, res) => {
+  const { id, title, content } = req.body;
+  if (id) return res.json(await Info.findByIdAndUpdate(id, { title, content }, { new: true }));
+  res.status(201).json(await Info.create({ title, content }));
+});
+app.delete('/info/:id',     async (req, res) => { await Info.findByIdAndDelete(req.params.id); res.status(204).end(); });
+
+// — Positions CRUD —
+app.get('/positions',       async (req, res) => res.json(await Position.find().sort({ position: 1 })));
+app.post('/positions',      async (req, res) => res.status(201).json(await Position.create(req.body)));
+app.put('/positions/:id',   async (req, res) => res.json(await Position.findByIdAndUpdate(req.params.id, req.body, { new: true })));
+app.delete('/positions/:id',async (req, res) => { await Position.findByIdAndDelete(req.params.id); res.status(204).end(); });
+app.post('/positions/bulk', async (req, res) => {
+  const docs = req.body.map(r=>({position:Number(r.position),pilot:String(r.pilot).trim(),team:String(r.team).trim(),points:Number(r.points)}));
+  await Position.insertMany(docs);
+  res.status(201).end();
+});
+
+
+// — Results CRUD —
+app.get('/results',         async (req, res) => res.json(await Result.find().sort({ date: -1 })));
+app.post('/results',        async (req, res) => res.status(201).json(await Result.create(req.body)));
+app.put('/results/:id',     async (req, res) => res.json(await Result.findByIdAndUpdate(req.params.id, req.body, { new: true })));
+app.delete('/results/:id',  async (req, res) => { await Result.findByIdAndDelete(req.params.id); res.status(204).end(); });
+
+// — Blog CRUD —
+app.get('/blog',            async (req, res) => {
+  const list = await Blog.find().sort({ date: -1 });
+  res.json(list.map(b => ({
+    _id: b._id,
+    title: b.title,
+    date: b.date,
+    content: b.content,
+    banner: b.banner ? `/uploads/blog/banner/${b.banner}` : null,
+    images: (b.images||[]).map(f => `/uploads/blog/images/${f}`)
+  })));
+});
+app.get('/blog/:id',        async (req, res) => {
+  const b = await Blog.findById(req.params.id);
+  res.json({
+    _id: b._id,
+    title: b.title,
+    date: b.date,
+    content: b.content,
+    banner: b.banner ? `/uploads/blog/banner/${b.banner}` : null,
+    images: (b.images||[]).map(f => `/uploads/blog/images/${f}`)
+  });
+});
+app.post('/blog', uploadBlog.fields([{ name: 'banner', maxCount: 1 }, { name: 'images', maxCount: 20 }]),
+  async (req, res) => {
+    const { title, date, content } = req.body;
+    const banner = req.files.banner?.[0].filename || null;
+    const images = (req.files.images||[]).map(f => f.filename);
+    res.status(201).json(await Blog.create({ title, date, content, banner, images }));
+});
+app.put('/blog/:id', uploadBlog.fields([{ name: 'banner', maxCount: 1 }, { name: 'images', maxCount: 20 }]),
+  async (req, res) => {
+    const { title, date, content } = req.body;
+    const u = { title, date, content };
+    if (req.files.banner) u.banner = req.files.banner[0].filename;
+    if (req.files.images) u.images = req.files.images.map(f => f.filename);
+    res.json(await Blog.findByIdAndUpdate(req.params.id, u, { new: true }));
+});
+app.delete('/blog/:id',     async (req, res) => { await Blog.findByIdAndDelete(req.params.id); res.status(204).end(); });
+
+
+app.get('/', (req, res) => res.send('¡Hola mundo!'));
+
+app.listen(port, () => console.log(`🚀 Servidor en http://localhost:${port}`));

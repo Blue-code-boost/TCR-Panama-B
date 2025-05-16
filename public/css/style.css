@@ -523,3 +523,61 @@ header nav ul {
 .silver { color: #C0C0C0; }
 .bronze { color: #CD7F32; }
 
+/* Traducción: estilos para los botones de idioma */
+.language-switcher {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end; /* o donde prefieras colocarlo */
+  align-items: center;
+  margin: 0 20px; /* ajusta el espacio lateral */
+}
+
+.language-switcher button {
+  background-color: #e50914;  /* color naranja/rojo de tu tema */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.language-switcher button:hover {
+  background-color: #f6121d;  /* ligeramente más claro */
+  transform: translateY(-2px);
+}
+
+.language-switcher button:active {
+  background-color: #c4080f;  /* más oscuro al pulsar */
+  transform: translateY(0);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #111;
+}
+
+/* Contenedor de logo + título */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* separación entre logo y texto */
+}
+
+.site-logo {
+  height: clamp(45px, 10vw, 80px);
+  width: auto;
+}
+
+
+/* Ajustes del h1 para que no crezca demasiado */
+.site-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #fff;
+  white-space: nowrap;
+}

@@ -14,17 +14,17 @@ async function initCountdown() {
 
 function updateCountdown() {
   if (!countdownTarget) return;
-  const now  = Date.now();
+  const now = Date.now();
   const diff = countdownTarget - now;
   if (diff < 0) return;
-  document.getElementById("days").innerText    =
-    String(Math.floor(diff / 86400000)).padStart(2,'0');
-  document.getElementById("hours").innerText   =
-    String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
+  document.getElementById("days").innerText =
+    String(Math.floor(diff / 86400000)).padStart(2, '0');
+  document.getElementById("hours").innerText =
+    String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
   document.getElementById("minutes").innerText =
-    String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+    String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
   document.getElementById("seconds").innerText =
-    String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+    String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -44,22 +44,22 @@ async function loadPublicHero() {
     const res = await fetch('/hero');
     if (!res.ok) throw 0;
     const hero = await res.json();
-    const sec  = document.getElementById('hero');
+    const sec = document.getElementById('hero');
     if (!sec) return;
 
     if (hero.imageUrl) {
       sec.style.backgroundImage =
         `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url('${hero.imageUrl}')`;
     }
-    document.getElementById('hero-title').textContent       = hero.title;
-    document.getElementById('hero-subtitle').textContent    = hero.subtitle;
+    document.getElementById('hero-title').textContent = hero.title;
+    document.getElementById('hero-subtitle').textContent = hero.subtitle;
     document.getElementById('hero-description').textContent = hero.description;
 
-    ['btn1','btn2'].forEach(key => {
+    ['btn1', 'btn2'].forEach(key => {
       const btn = document.getElementById(`hero-${key}`);
       if (hero[key]?.text && hero[key]?.url) {
         btn.textContent = hero[key].text;
-        btn.onclick     = () => window.location = hero[key].url;
+        btn.onclick = () => window.location = hero[key].url;
         btn.style.display = 'inline-block';
       }
     });
@@ -75,7 +75,7 @@ async function loadEvents() {
     const res = await fetch('/events');
     if (!res.ok) throw 0;
     const evs = await res.json();
-    const c   = document.getElementById('events-list');
+    const c = document.getElementById('events-list');
     if (!c) return;
     c.innerHTML = evs.map(e => `
       <div class="event-item">
@@ -94,8 +94,8 @@ async function loadNews() {
   try {
     const res = await fetch('/news');
     if (!res.ok) throw 0;
-    const ns  = await res.json();
-    const c   = document.getElementById('news-list');
+    const ns = await res.json();
+    const c = document.getElementById('news-list');
     if (!c) return;
     c.innerHTML = ns.map(n => `
       <div class="news-item">
@@ -112,10 +112,10 @@ async function loadNews() {
 // ——— Galería público ———
 async function loadGallery() {
   try {
-    const res   = await fetch('/gallery');
+    const res = await fetch('/gallery');
     if (!res.ok) throw 0;
-    const imgs  = await res.json();
-    const grid  = document.getElementById('gallery-list');
+    const imgs = await res.json();
+    const grid = document.getElementById('gallery-list');
     if (!grid) return;
     grid.innerHTML = imgs.map(i => `
       <div class="gallery-item">
@@ -134,7 +134,7 @@ async function loadInfo() {
     const res = await fetch('/info');
     if (!res.ok) throw 0;
     const dat = await res.json();
-    const c   = document.getElementById('info-list');
+    const c = document.getElementById('info-list');
     if (!c) return;
     c.innerHTML = dat.map(i => `
       <div class="info-block">
@@ -152,8 +152,8 @@ async function loadPositions() {
   try {
     const res = await fetch('/positions');
     if (!res.ok) throw 0;
-    const ps  = await res.json();
-    const tb  = document.querySelector('#positions-table tbody');
+    const ps = await res.json();
+    const tb = document.querySelector('#positions-table tbody');
     if (!tb) return;
     tb.innerHTML = ps.map(p => `
       <tr>
@@ -173,8 +173,8 @@ async function loadResults() {
   try {
     const res = await fetch('/results');
     if (!res.ok) throw 0;
-    const rs  = await res.json();
-    const c   = document.getElementById('results-list');
+    const rs = await res.json();
+    const c = document.getElementById('results-list');
     if (!c) return;
     c.innerHTML = rs.map(r => `
       <article class="result-date">
@@ -194,14 +194,14 @@ async function loadResults() {
 // ——— Blog público con “Leer más” ———
 async function loadBlog() {
   try {
-    const res   = await fetch('/blog');
+    const res = await fetch('/blog');
     if (!res.ok) throw 0;
     const posts = await res.json();
-    const c     = document.getElementById('blog-list');
+    const c = document.getElementById('blog-list');
     if (!c) return;
     c.innerHTML = posts.map(b => {
       const excerpt = b.content.length > 150
-        ? b.content.slice(0,150) + '…'
+        ? b.content.slice(0, 150) + '…'
         : b.content;
       return `
         <article class="blog-post">
@@ -219,7 +219,7 @@ async function loadBlog() {
 
 // ——— Lightbox setup ———
 function setupLightbox() {
-  const overlay    = document.getElementById('image-modal-overlay');
+  const overlay = document.getElementById('image-modal-overlay');
   if (!overlay) return;
   const overlayImg = overlay.querySelector('img');
 
@@ -233,7 +233,7 @@ function setupLightbox() {
   document.querySelectorAll('.post-images img').forEach(img => {
     img.style.cursor = 'zoom-in';
     img.addEventListener('click', () => {
-      overlayImg.src        = img.src;
+      overlayImg.src = img.src;
       overlay.style.display = 'flex';
     });
   });
@@ -242,14 +242,14 @@ function setupLightbox() {
 // ——— Detalle de Blog público ———
 async function loadBlogPost() {
   const params = new URLSearchParams(location.search);
-  const id     = params.get('id');
+  const id = params.get('id');
   if (!id) return;
 
   try {
     const res = await fetch(`/blog/${id}`);
     if (!res.ok) throw 0;
-    const p   = await res.json();
-    const a   = document.getElementById('blog-post');
+    const p = await res.json();
+    const a = document.getElementById('blog-post');
     if (!a) return;
 
     let html = '';
@@ -285,7 +285,7 @@ async function loadBlogPost() {
 
 // ——— Lightbox setup for blog ———
 function setupLightbox() {
-  const overlay    = document.getElementById('image-modal-overlay');
+  const overlay = document.getElementById('image-modal-overlay');
   if (!overlay) return;
   const overlayImg = overlay.querySelector('img');
 
@@ -301,7 +301,7 @@ function setupLightbox() {
   document.querySelectorAll('.post-images img').forEach(img => {
     img.style.cursor = 'zoom-in';
     img.addEventListener('click', () => {
-      overlayImg.src        = img.src;
+      overlayImg.src = img.src;
       overlay.style.display = 'flex';
     });
   });
@@ -309,7 +309,7 @@ function setupLightbox() {
 
 // ——— Lightbox setup para galería ———
 function setupGalleryLightbox() {
-  const overlay    = document.getElementById('image-modal-overlay');
+  const overlay = document.getElementById('image-modal-overlay');
   if (!overlay) return;
   const overlayImg = overlay.querySelector('img');
 
@@ -325,7 +325,7 @@ function setupGalleryLightbox() {
   document.querySelectorAll('.gallery-item img').forEach(img => {
     img.style.cursor = 'zoom-in';
     img.addEventListener('click', () => {
-      overlayImg.src        = img.src;
+      overlayImg.src = img.src;
       overlay.style.display = 'flex';
     });
   });
@@ -334,10 +334,10 @@ function setupGalleryLightbox() {
 // ——— Galería público ———
 async function loadGallery() {
   try {
-    const res   = await fetch('/gallery');
+    const res = await fetch('/gallery');
     if (!res.ok) throw 0;
-    const imgs  = await res.json();
-    const grid  = document.getElementById('gallery-list');
+    const imgs = await res.json();
+    const grid = document.getElementById('gallery-list');
     if (!grid) return;
 
     grid.innerHTML = imgs.map(i => `
@@ -390,24 +390,39 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCountdown();
     setInterval(updateCountdown, 1000);
   }
-  if (document.getElementById('events-list'))     loadEvents();
-  if (document.getElementById('news-list'))       loadNews();
-  if (document.getElementById('gallery-list'))    loadGallery();
-  if (document.getElementById('info-list'))       loadInfo();
+  if (document.getElementById('events-list')) loadEvents();
+  if (document.getElementById('news-list')) loadNews();
+  if (document.getElementById('gallery-list')) loadGallery();
+  if (document.getElementById('info-list')) loadInfo();
   if (document.querySelector('#positions-table')) loadPositions();
-  if (document.getElementById('results-list'))    loadResults();
-  if (document.getElementById('blog-list'))       loadBlog();
-  if (document.getElementById('blog-post'))       loadBlogPost();
-  if(document.getElementById('teams-container')) loadTeamsPublic();
+  if (document.getElementById('results-list')) loadResults();
+  if (document.getElementById('blog-list')) loadBlog();
+  if (document.getElementById('blog-post')) loadBlogPost();
+  if (document.getElementById('teams-container')) loadTeamsPublic();
   if (document.getElementById("days")) {
-  // en lugar del hard-code:
-  fetch('/countdown')
-    .then(r => r.json())
-    .then(cfg => {
-      publicCountdownTarget = new Date(cfg.target).getTime();
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
-    })
-    .catch(err => console.error('countdown fetch:', err));
-}
+    // en lugar del hard-code:
+    fetch('/countdown')
+      .then(r => r.json())
+      .then(cfg => {
+        publicCountdownTarget = new Date(cfg.target).getTime();
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+      })
+      .catch(err => console.error('countdown fetch:', err));
+  }
+
+  const btnEn = document.getElementById('to-en');
+  const btnEs = document.getElementById('to-es');
+  if (btnEn) {
+    btnEn.addEventListener('click', () => {
+      const url = encodeURIComponent(window.location.href);
+      window.location.href = `https://translate.google.com/translate?sl=auto&tl=en&u=${url}`;
+    });
+  }
+  if (btnEs) {
+    btnEs.addEventListener('click', () => {
+      const url = encodeURIComponent(window.location.href);
+      window.location.href = `https://translate.google.com/translate?sl=auto&tl=es&u=${url}`;
+    });
+  }
 });

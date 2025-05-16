@@ -846,3 +846,24 @@ form button:hover { background: #007acc; }
 .admin-countdown .countdown-preview div {
   text-align: center;
 }
+/* Estilos para el botón de Cerrar sesión */
+#logout-btn {
+  background-color: #e50914;    /* rojo Netflix-like */
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  position: absolute;           /* lo colocamos fijo arriba a la derecha */
+  top: 20px;
+  right: 20px;
+  z-index: 1001;
+}
+
+#logout-btn:hover {
+  background-color: #f6121d;
+  transform: translateY(-2px);
+}
