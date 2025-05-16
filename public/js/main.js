@@ -1,3 +1,5 @@
+const API = 'http://localhost:3000';
+
 // ——— Countdown protegido ———
 function updateCountdown() {
   const daysEl    = document.getElementById("days");
@@ -333,6 +335,31 @@ async function loadGallery() {
   }
 }
 
+// ——— Carga pública de Teams ———
+async function loadTeamsPublic() {
+  try {
+    const res = await fetch(`${API}/teams`);
+    if (!res.ok) throw new Error(res.statusText);
+    const teams = await res.json();
+    const container = document.getElementById('teams-container');
+    if (!container) return;
+
+    container.innerHTML = teams.map(t => `
+      <div class="team-card">
+        <img src="${t.imageUrl || 'img/placeholder.png'}" alt="${t.name}">
+        <div class="team-info">
+          <h3>${t.name}</h3>
+          <p><strong>Pilotos:</strong> ${t.pilots.join(', ')}</p>
+          <p><strong>Posición:</strong> ${t.position}º</p>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Error cargando equipos:', err);
+  }
+}
+
+
 // ——— Punto de entrada único ———
 document.addEventListener('DOMContentLoaded', () => {
   loadPublicHero();
@@ -349,4 +376,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('results-list'))    loadResults();
   if (document.getElementById('blog-list'))       loadBlog();
   if (document.getElementById('blog-post'))       loadBlogPost();
+  if(document.getElementById('teams-container')) loadTeamsPublic();
+
 });
