@@ -776,3 +776,51 @@ form button:hover { background: #007acc; }
   margin-right: 0.5rem;
   vertical-align: middle;
 }
+/* Botón Editar: amarillo con texto oscuro */
+.actions .edit-btn {
+  background-color: orange; /* dorado/amarillo */
+  color: #000;
+}
+
+.actions .edit-btn:hover {
+  background-color: orange; /* un poco más oscuro al hover */
+}
+
+/* Botón Eliminar: rojo con texto claro */
+.actions .delete-btn {
+  background-color: #DC2626; /* rojo */
+  color: #fff;
+}
+
+.actions .delete-btn:hover {
+  background-color: #B91C1C; /* rojo oscuro al hover */
+}
+
+/* Botones de acción */
+.edit-btn,
+.delete-btn {
+  border: none;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-left: 0.5rem;
+}
+
+.edit-btn {
+  background-color: orange;
+}
+
+.edit-btn:hover {
+  opacity: 0.8;
+}
+
+.delete-btn {
+  background-color: crimson;
+}
+
+.delete-btn:hover {
+  opacity: 0.8;
+}

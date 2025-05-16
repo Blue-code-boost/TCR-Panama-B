@@ -1,196 +1,163 @@
 // admin.js
 // ===================
-// Variables y Configuración
+// Variables y referencias al DOM
 // ===================
 
 const API = 'http://localhost:3000';
-let editId = null;
 
-// ===================
-// Funciones de Equipos
-// ===================
-/**
- * Carga y muestra la lista de equipos
- */
+// --- Equipos ---
+let editTeamId = null;
+const teamForm        = document.getElementById('team-form');
+const teamList        = document.getElementById('teams-list');
+const teamNameInput   = document.getElementById('team-name');
+const teamPilotsInput = document.getElementById('team-pilots');
+const teamPositionInput = document.getElementById('team-position');
+const teamImageInput  = document.getElementById('team-image');
+const teamStatus      = document.getElementById('bulk-status');
+const teamSubmitBtn   = document.getElementById('team-submit-btn');
+
 async function loadTeams() {
   try {
-    const listEl = document.getElementById('teams-list');
-    listEl.innerHTML = teams.map(t =>
-      `<li data-id="${t._id}">
-     ${t.imageUrl
-        ? `<img src="${t.imageUrl}" alt="${t.name}" class="team-thumb">`
-        : ''}
-     <span><strong>${t.name}</strong> (Pos: ${t.position}) — ${t.pilots.join(', ')}</span>
-     <span>
-       <button class="edit-btn">Editar</button>
-       <button class="delete-btn">Eliminar</button>
-     </span>
-   </li>`
-    ).join('');
-
-
-    // Asociar botones de borrar
-    listEl.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        const id = e.target.closest('li').dataset.id;
-        if (confirm('¿Eliminar este equipo?')) {
-          await fetch(`${API}/teams/${id}`, { method: 'DELETE' });
-          loadTeams();
-        }
-      });
-    });
-
-    // Asociar botones de editar
-    listEl.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        const id = e.target.closest('li').dataset.id;
-        const res2 = await fetch(`${API}/teams/${id}`);
-        if (!res2.ok) return alert('No se pudo cargar el equipo');
-        const team = await res2.json();
-        document.getElementById('team-id').value = id;
-        document.getElementById('team-name').value = team.name;
-        document.getElementById('team-pilots').value = team.pilots.join(', ');
-        document.getElementById('team-position').value = team.position;
-        document.getElementById('team-submit-btn').innerText = 'Actualizar Equipo';
-        editId = id;
-      });
-    });
+    const res = await fetch(`${API}/teams`);
+    if (!res.ok) throw new Error(res.statusText);
+    const teams = await res.json();
+    teamList.innerHTML = teams.map(t => `
+      <li data-id="${t._id}">
+        ${t.imageUrl ? `<img src="${t.imageUrl}" class="thumb">` : ''}
+        <span><strong>${t.name}</strong> (Pos ${t.position}) — ${t.pilots.join(', ')}</span>
+        <span class="actions">
+          <button class="edit-btn">Editar</button>
+          <button class="delete-btn">Eliminar</button>
+        </span>
+      </li>
+    `).join('');
   } catch (err) {
-    console.error('Error en loadTeams():', err);
-    document.getElementById('teams-list').innerHTML = '<li style="color:red">Error cargando equipos</li>';
+    teamList.innerHTML = `<li style="color:red">Error al cargar equipos: ${err.message}</li>`;
   }
 }
 
-/**
- * Crea o actualiza un equipo según editId
- */
-async function handleFormSubmit(event) {
-  event.preventDefault();
-
-  const id = document.getElementById('team-id').value;
-  const url = id ? `${API}/teams/${id}` : `${API}/teams`;
-  const method = id ? 'PUT' : 'POST';
-  const formData = new FormData();
-
-  formData.append('name', document.getElementById('team-name').value.trim());
-  formData.append('pilots', document.getElementById('team-pilots').value);
-  formData.append('position', document.getElementById('team-position').value);
-
-  const fileInput = document.getElementById('team-image');
-  if (fileInput.files.length > 0) {
-    formData.append('image', fileInput.files[0]);
-  }
+async function handleTeamFormSubmit(e) {
+  e.preventDefault();
+  const url = editTeamId ? `${API}/teams/${editTeamId}` : `${API}/teams`;
+  const method = editTeamId ? 'PUT' : 'POST';
+  const fd = new FormData();
+  fd.append('name', teamNameInput.value.trim());
+  fd.append('pilots', teamPilotsInput.value.trim());
+  fd.append('position', teamPositionInput.value);
+  if (teamImageInput.files[0]) fd.append('image', teamImageInput.files[0]);
 
   try {
-    const res = await fetch(`${API.replace(/\/$/, '')}${url}`, {
-      method,
-      body: formData
-    });
+    const res = await fetch(url, { method, body: fd });
     if (!res.ok) throw new Error(await res.text());
+    editTeamId = null;
+    teamForm.reset();
+    teamSubmitBtn.innerText = 'Crear Equipo';
+    teamStatus.textContent = '';
+    await loadTeams();
   } catch (err) {
-    alert('Error guardando equipo: ' + err.message);
-    console.error(err);
-  }
-
-  // Reset
-  editId = null;
-  document.getElementById('team-form').reset();
-  document.getElementById('team-submit-btn').innerText = 'Crear Equipo';
-  loadTeams();
-}
-
-
-/**
- * Procesa archivo Excel y envía bulk import
- */
-async function handleBulkUpload() {
-  console.log('🔥 Bulk upload button clicked');
-  const fileInput = document.getElementById('excel-file');
-  const status = document.getElementById('bulk-status');
-  if (!fileInput.files.length) return alert('Selecciona un archivo Excel.');
-  const data = await fileInput.files[0].arrayBuffer();
-  const workbook = XLSX.read(data);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json(sheet);
-  status.textContent = 'Importando...';
-  try {
-    const res = await fetch(`${API}/teams/bulk`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(json)
-    });
-    if (!res.ok) throw new Error(await res.text());
-    status.textContent = 'Importación exitosa 🎉';
-    loadTeams();
-  } catch (err) {
-    status.textContent = 'Error: ' + err.message;
-    console.error(err);
+    teamStatus.textContent = 'Error: ' + err.message;
   }
 }
 
-// ===================
-// Funciones de Eventos
-// ===================
+teamList.addEventListener('click', async e => {
+  const btn = e.target;
+  const li = btn.closest('li');
+  if (!li) return;
+  const id = li.dataset.id;
+
+  if (btn.matches('.delete-btn')) {
+    if (!confirm('¿Eliminar este equipo?')) return;
+    await fetch(`${API}/teams/${id}`, { method: 'DELETE' });
+    return loadTeams();
+  }
+
+  if (btn.matches('.edit-btn')) {
+    const res = await fetch(`${API}/teams/${id}`);
+    if (!res.ok) return alert('No se encontró ese equipo');
+    const t = await res.json();
+    editTeamId = t._id;
+    teamNameInput.value = t.name;
+    teamPilotsInput.value = t.pilots.join(', ');
+    teamPositionInput.value = t.position;
+    teamSubmitBtn.innerText = 'Actualizar Equipo';
+  }
+});
+
+// --- Eventos ---
+let editEventId = null;
+const eventForm       = document.getElementById('event-form');
+const eventList       = document.getElementById('events-list');
+const eventNameInput  = document.getElementById('event-name');
+const eventDateInput  = document.getElementById('event-date');
+const eventLocInput   = document.getElementById('event-location');
+const eventSubmitBtn  = document.getElementById('event-submit-btn');
+
 async function loadEvents() {
   try {
     const res = await fetch(`${API}/events`);
     const events = await res.json();
-    const list = document.getElementById('events-list');
-    list.innerHTML = events.map(ev =>
-      `<li data-id="${ev._id}">
-         <span>${ev.name} — ${new Date(ev.date).toLocaleDateString()} — ${ev.location}</span>
-         <span>
-           <button class="edit-btn">Editar</button>
-           <button class="delete-btn">Eliminar</button>
-         </span>
-       </li>`
-    ).join('');
-    // Borrar eventos
-    list.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        const id = e.target.closest('li').dataset.id;
-        await fetch(`${API}/events/${id}`, { method: 'DELETE' });
-        loadEvents();
-      });
-    });
-    // Editar eventos
-    list.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        const id = e.target.closest('li').dataset.id;
-        const res2 = await fetch(`${API}/events/${id}`);
-        const ev = await res2.json();
-        document.getElementById('event-id').value = id;
-        document.getElementById('event-name').value = ev.name;
-        document.getElementById('event-date').value = ev.date.split('T')[0];
-        document.getElementById('event-location').value = ev.location;
-        document.getElementById('event-submit-btn').innerText = 'Actualizar Evento';
-      });
-    });
+    eventList.innerHTML = events.map(ev => `
+      <li data-id="${ev._id}">
+        <span>${ev.name} — ${new Date(ev.date).toLocaleDateString()} — ${ev.location}</span>
+        <span>
+          <button class="edit-btn">Editar</button>
+          <button class="delete-btn">Eliminar</button>
+        </span>
+      </li>
+    `).join('');
   } catch (err) {
-    console.error('Error en loadEvents():', err);
-    document.getElementById('events-list').innerHTML = '<li style="color:red">Error cargando eventos</li>';
+    eventList.innerHTML = `<li style="color:red">Error al cargar eventos</li>`;
   }
 }
 
-// handleEventFormSubmit actualizado
 async function handleEventFormSubmit(e) {
   e.preventDefault();
-  // Log para revisar datos
-  const eventId = document.getElementById('event-id').value;
-  const payload = { name: document.getElementById('event-name').value, date: document.getElementById('event-date').value, location: document.getElementById('event-location').value };
-  const url = eventId ? `${API}/events/${eventId}` : `${API}/events`;
-  const method = eventId ? 'PUT' : 'POST';
+  const payload = {
+    name: eventNameInput.value.trim(),
+    date: eventDateInput.value,
+    location: eventLocInput.value.trim()
+  };
+  const url = editEventId ? `${API}/events/${editEventId}` : `${API}/events`;
+  const method = editEventId ? 'PUT' : 'POST';
   try {
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
     if (!res.ok) throw new Error(await res.text());
+    editEventId = null;
+    eventForm.reset();
+    eventSubmitBtn.innerText = 'Crear Evento';
+    await loadEvents();
   } catch (err) {
-    console.error('Error guardando evento:', err);
-    alert('Error guardando evento: ' + err.message);
+    alert('Error: ' + err.message);
   }
-  document.getElementById('event-form').reset();
-  loadEvents();
 }
 
+eventList.addEventListener('click', async e => {
+  const btn = e.target;
+  const li = btn.closest('li');
+  if (!li) return;
+  const id = li.dataset.id;
+
+  if (btn.matches('.delete-btn')) {
+    await fetch(`${API}/events/${id}`, { method: 'DELETE' });
+    return loadEvents();
+  }
+
+  if (btn.matches('.edit-btn')) {
+    const res = await fetch(`${API}/events/${id}`);
+    const ev = await res.json();
+    editEventId = ev._id;
+    eventNameInput.value = ev.name;
+    eventDateInput.value = ev.date.split('T')[0];
+    eventLocInput.value = ev.location;
+    eventSubmitBtn.innerText = 'Actualizar Evento';
+  }
+});
+
+// --- bulk event ---
 async function handleBulkEvents() {
   console.log('🔥 Bulk events upload');
   const file = document.getElementById('events-excel').files[0];
@@ -213,277 +180,187 @@ async function handleBulkEvents() {
   }
 }
 
-// ==== Noticias ====
-async function loadNews() {
-  try {
-    const res = await fetch(`${API}/news`);
-    const data = await res.json();
-    const list = document.getElementById('news-list');
-    list.innerHTML = data.map(n => `
-      <li data-id="${n._id}">
-        <strong>${n.title}</strong>
-        <small>${new Date(n.date).toLocaleDateString()}</small>
-        <p>${n.description}</p>
-        <button class="edit-news-btn">Editar</button>
-        <button class="delete-news-btn">Eliminar</button>
-      </li>
-    `).join('');
+// --- Galería ---
+const galleryForm     = document.getElementById('gallery-form');
+const galleryList     = document.getElementById('gallery-list');
+const galleryImgInput = document.getElementById('gallery-image');
+const galleryCapInput = document.getElementById('gallery-caption');
 
-    // Editar
-    document.querySelectorAll('.edit-news-btn').forEach(btn => {
-      btn.onclick = () => {
-        const li = btn.closest('li');
-        const id = li.dataset.id;
-        const n = data.find(x => x._id === id);
-        document.getElementById('news-id').value = id;
-        document.getElementById('news-title').value = n.title;
-        document.getElementById('news-date').value = n.date.slice(0, 10);
-        document.getElementById('news-description').value = n.description;
-        document.getElementById('news-submit-btn').innerText = 'Actualizar';
-      };
-    });
-
-    // Borrar
-    document.querySelectorAll('.delete-news-btn').forEach(btn => {
-      btn.onclick = async () => {
-        const id = btn.closest('li').dataset.id;
-        if (!confirm('¿Eliminar esta noticia?')) return;
-        await fetch(`${API}/news/${id}`, { method: 'DELETE' });
-        loadNews();
-      };
-    });
-  } catch (err) {
-    console.error('Error loadNews()', err);
-  }
-}
-
-async function handleNewsFormSubmit(e) {
-  e.preventDefault();
-  const id = document.getElementById('news-id').value;
-  const payload = {
-    title: document.getElementById('news-title').value.trim(),
-    date: document.getElementById('news-date').value,
-    description: document.getElementById('news-description').value.trim()
-  };
-  const opts = {
-    method: id ? 'PUT' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  };
-  const url = `${API}/news${id ? '/' + id : ''}`;
-  const res = await fetch(url, opts);
-  if (res.status === 201 || res.ok) {
-    document.getElementById('news-form').reset();
-    document.getElementById('news-submit-btn').innerText = 'Crear / Actualizar';
-    loadNews();
-  } else {
-    alert(`Error guardando Noticia (${res.status})`);
-  }
-}
-
-// Registrar listeners
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('news-form')
-    .addEventListener('submit', handleNewsFormSubmit);
-  loadNews();
-});
-
-
-async function handleBulkNews() {
-  console.log('🔥 handleBulkNews disparado', document.getElementById('news-excel').files);
-  const fileInput = document.getElementById('news-excel');
-  if (!fileInput.files.length) return alert('Selecciona un archivo');
-  const data = await fileInput.files[0].arrayBuffer();
-  const wb = XLSX.read(data);
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws);
-  document.getElementById('bulk-news-status').innerText = 'Importando...';
-  const res = await fetch(`${API}/news/bulk`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(rows)
-  });
-  if (res.ok) {
-    document.getElementById('bulk-news-status').innerText = 'Importación exitosa 🎉';
-    loadNews();
-  } else {
-    document.getElementById('bulk-news-status').innerText = 'Error en importación';
-  }
-}
-
-// === Galería ===
 async function loadGallery() {
   try {
     const res = await fetch(`${API}/gallery`);
     const data = await res.json();
-    const list = document.getElementById('gallery-list');
-    list.innerHTML = data.map(i => `
+    galleryList.innerHTML = data.map(i => `
       <li data-id="${i._id}">
-        <img src="${i.url}" alt="${i.caption}" width="100">
+        <img src="${i.url}" width="100">
         <p>${i.caption}</p>
-        <button class="delete-gallery-btn">Eliminar</button>
+        <button class="delete-btn">Eliminar</button>
       </li>
     `).join('');
-
-    // Borrar cada imagen
-    document.querySelectorAll('.delete-gallery-btn').forEach(btn => {
-      btn.onclick = async e => {
-        const id = e.target.closest('li').dataset.id;
-        if (!confirm('¿Eliminar esta imagen?')) return;
-        await fetch(`${API}/gallery/${id}`, { method: 'DELETE' });
-        loadGallery();
-      };
-    });
   } catch (err) {
-    console.error('Error loadGallery()', err);
+    galleryList.innerHTML = `<li style="color:red">Error galería</li>`;
   }
 }
 
 async function handleGalleryFormSubmit(e) {
   e.preventDefault();
-  const fileInput = document.getElementById('gallery-image');
-  const captionInput = document.getElementById('gallery-caption');
-  const file = fileInput.files[0];
+  const file = galleryImgInput.files[0];
   if (!file) return alert('Selecciona una imagen');
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('caption', captionInput.value.trim());
-
-  const res = await fetch(`${API}/gallery`, {
-    method: 'POST',
-    body: formData
-  });
-  if (!res.ok) return alert('Error subiendo imagen');
-  fileInput.value = '';
-  captionInput.value = '';
-  loadGallery();
+  const fd = new FormData();
+  fd.append('image', file);
+  fd.append('caption', galleryCapInput.value.trim());
+  try {
+    const res = await fetch(`${API}/gallery`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    galleryForm.reset();
+    await loadGallery();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
 
-// === Info ===
+galleryList.addEventListener('click', async e => {
+  if (!e.target.matches('.delete-btn')) return;
+  const id = e.target.closest('li').dataset.id;
+  if (!confirm('¿Eliminar imagen?')) return;
+  await fetch(`${API}/gallery/${id}`, { method: 'DELETE' });
+  loadGallery();
+});
+
+// --- Info ---
+let editInfoId = null;
+const infoForm       = document.getElementById('info-form');
+const infoList       = document.getElementById('info-list');
+const infoTitleInput = document.getElementById('info-title');
+const infoContentInput = document.getElementById('info-content');
+const infoSubmitBtn  = document.getElementById('info-submit-btn');
+
 async function loadInfo() {
   try {
     const res = await fetch(`${API}/info`);
     const data = await res.json();
-    const list = document.getElementById('info-list');
-    list.innerHTML = data.map(i =>
-      `<li data-id="${i._id}">
-         <strong>${i.title}</strong>
-         <p>${i.content}</p>
-         <button class="edit-info-btn">Editar</button>
-         <button class="delete-info-btn">Eliminar</button>
-       </li>`
-    ).join('');
-
-    // Bind Edit
-    document.querySelectorAll('.edit-info-btn').forEach(btn => {
-      btn.onclick = async e => {
-        const li = e.target.closest('li');
-        const id = li.dataset.id;
-        const item = data.find(x => x._id === id);
-        document.getElementById('info-id').value = id;
-        document.getElementById('info-title').value = item.title;
-        document.getElementById('info-content').value = item.content;
-        document.getElementById('info-submit-btn').innerText = 'Actualizar';
-      };
-    });
-
-    // Bind Delete
-    document.querySelectorAll('.delete-info-btn').forEach(btn => {
-      btn.onclick = async e => {
-        const id = e.target.closest('li').dataset.id;
-        if (!confirm('¿Eliminar este bloque de info?')) return;
-        await fetch(`${API}/info/${id}`, { method: 'DELETE' });
-        loadInfo();
-      };
-    });
-
+    infoList.innerHTML = data.map(i => `
+      <li data-id="${i._id}">
+        <strong>${i.title}</strong>
+        <p>${i.content}</p>
+        <button class="edit-btn">Editar</button>
+        <button class="delete-btn">Eliminar</button>
+      </li>
+    `).join('');
   } catch (err) {
-    console.error('Error loadInfo()', err);
+    infoList.innerHTML = `<li style="color:red">Error info</li>`;
   }
 }
 
 async function handleInfoFormSubmit(e) {
   e.preventDefault();
-  const id = document.getElementById('info-id').value;
-  const title = document.getElementById('info-title').value.trim();
-  const content = document.getElementById('info-content').value.trim();
-  const res = await fetch(`${API}/info`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, title, content })
-  });
-  if (!res.ok) return alert('Error guardando Info');
-  document.getElementById('info-form').reset();
-  document.getElementById('info-submit-btn').innerText = 'Crear / Actualizar';
-  loadInfo();
+  const payload = { id: editInfoId, title: infoTitleInput.value.trim(), content: infoContentInput.value.trim() };
+  try {
+    const res = await fetch(`${API}/info`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    editInfoId = null;
+    infoForm.reset();
+    infoSubmitBtn.innerText = 'Crear / Actualizar';
+    loadInfo();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
 
-// === Posiciones ===
+infoList.addEventListener('click', async e => {
+  const btn = e.target;
+  const li = btn.closest('li'); if (!li) return;
+  const id = li.dataset.id;
+  if (btn.matches('.delete-btn')) {
+    if (!confirm('¿Eliminar bloque?')) return;
+    await fetch(`${API}/info/${id}`, { method: 'DELETE' });
+    return loadInfo();
+  }
+  if (btn.matches('.edit-btn')) {
+    const data = await (await fetch(`${API}/info`)).json();
+    const item = data.find(x => x._id === id);
+    editInfoId = id;
+    infoTitleInput.value = item.title;
+    infoContentInput.value = item.content;
+    infoSubmitBtn.innerText = 'Actualizar';
+  }
+});
+
+// --- Posiciones ---
+let editPosId = null;
+const positionsForm     = document.getElementById('positions-form');
+const positionsList     = document.getElementById('positions-list');
+const posNumberInput    = document.getElementById('pos-number');
+const posPilotInput     = document.getElementById('pos-pilot');
+const posTeamInput      = document.getElementById('pos-team');
+const posPointsInput    = document.getElementById('pos-points');
+const posSubmitBtn      = document.getElementById('pos-submit-btn');
+
 async function loadPositions() {
   try {
     const res = await fetch(`${API}/positions`);
     const data = await res.json();
-    const list = document.getElementById('positions-list');
-    list.innerHTML = data.map(p => `
+    positionsList.innerHTML = data.map(p => `
       <li data-id="${p._id}">
-        <span>#${p.position} — ${p.pilot} (${p.team}) · ${p.points} pts</span>
-        <span>
-          <button class="edit-pos-btn">Editar</button>
-          <button class="delete-pos-btn">Eliminar</button>
-        </span>
+        #${p.position} — ${p.pilot} (${p.team}) · ${p.points} pts
+        <button class="edit-btn">Editar</button>
+        <button class="delete-btn">Eliminar</button>
       </li>
     `).join('');
-
-    // Editar
-    document.querySelectorAll('.edit-pos-btn').forEach(btn => {
-      btn.onclick = e => {
-        const li = e.target.closest('li');
-        const id = li.dataset.id;
-        const p = data.find(x => x._id === id);
-        document.getElementById('pos-id').value = id;
-        document.getElementById('pos-number').value = p.position;
-        document.getElementById('pos-pilot').value = p.pilot;
-        document.getElementById('pos-team').value = p.team;
-        document.getElementById('pos-points').value = p.points;
-        document.getElementById('pos-submit-btn').innerText = 'Actualizar';
-      };
-    });
-
-    // Borrar
-    document.querySelectorAll('.delete-pos-btn').forEach(btn => {
-      btn.onclick = async e => {
-        const id = e.target.closest('li').dataset.id;
-        if (!confirm('¿Eliminar esta posición?')) return;
-        await fetch(`${API}/positions/${id}`, { method: 'DELETE' });
-        loadPositions();
-      };
-    });
-  } catch (err) {
-    console.error('Error loadPositions()', err);
+  } catch {
+    positionsList.innerHTML = `<li style="color:red">Error posiciones</li>`;
   }
 }
 
 async function handlePositionsFormSubmit(e) {
   e.preventDefault();
-  const id = document.getElementById('pos-id').value;
   const body = {
-    position: +document.getElementById('pos-number').value,
-    pilot: document.getElementById('pos-pilot').value.trim(),
-    team: document.getElementById('pos-team').value.trim(),
-    points: +document.getElementById('pos-points').value
+    position: +posNumberInput.value,
+    pilot: posPilotInput.value.trim(),
+    team: posTeamInput.value.trim(),
+    points: +posPointsInput.value
   };
-  const opts = {
-    method: id ? 'PUT' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  };
-  const url = `${API}/positions${id ? '/' + id : ''}`;
-  const res = await fetch(url, opts);
-  if (!res.ok) return alert('Error guardando posición');
-  document.getElementById('positions-form').reset();
-  document.getElementById('pos-submit-btn').innerText = 'Crear / Actualizar';
-  loadPositions();
+  const url    = editPosId ? `${API}/positions/${editPosId}` : `${API}/positions`;
+  const method = editPosId ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    editPosId = null;
+    positionsForm.reset();
+    posSubmitBtn.innerText = 'Crear / Actualizar';
+    loadPositions();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
+
+positionsList.addEventListener('click', async e => {
+  const btn = e.target; const li = btn.closest('li'); if (!li) return;
+  const id = li.dataset.id;
+  if (btn.matches('.delete-btn')) {
+    if (!confirm('¿Eliminar posición?')) return;
+    await fetch(`${API}/positions/${id}`, { method: 'DELETE' });
+    return loadPositions();
+  }
+  if (btn.matches('.edit-btn')) {
+    const data = await (await fetch(`${API}/positions`)).json();
+    const p = data.find(x => x._id === id);
+    editPosId = id;
+    posNumberInput.value = p.position;
+    posPilotInput.value  = p.pilot;
+    posTeamInput.value   = p.team;
+    posPointsInput.value = p.points;
+    posSubmitBtn.innerText = 'Actualizar';
+  }
+});
 
 // === Bulk upload de Posiciones ===
 async function handleBulkPositionsUpload() {
@@ -517,209 +394,257 @@ async function handleBulkPositionsUpload() {
   loadPositions();
 }
 
-// === Resultados ===
+// --- Resultados ---
+let editResId = null;
+const resultsForm     = document.getElementById('results-form');
+const resultsList     = document.getElementById('results-list');
+const resEventInput   = document.getElementById('res-event');
+const resDateInput    = document.getElementById('res-date');
+const resFirstInput   = document.getElementById('res-first');
+const resSecondInput  = document.getElementById('res-second');
+const resThirdInput   = document.getElementById('res-third');
+const resSubmitBtn    = document.getElementById('res-submit-btn');
+
 async function loadResults() {
   try {
     const res = await fetch(`${API}/results`);
     const data = await res.json();
-    const list = document.getElementById('results-list');
-    list.innerHTML = data.map(r => `
+    resultsList.innerHTML = data.map(r => `
       <li data-id="${r._id}">
-        <span>${new Date(r.date).toLocaleDateString()} —
-              ${r.event}: 🥇${r.first} 🥈${r.second} 🥉${r.third}
-        </span>
-        <span>
-          <button class="edit-res-btn">Editar</button>
-          <button class="delete-res-btn">Eliminar</button>
-        </span>
+        ${new Date(r.date).toLocaleDateString()} — ${r.event}: 🥇${r.first} 🥈${r.second} 🥉${r.third}
+        <button class="edit-btn">Editar</button>
+        <button class="delete-btn">Eliminar</button>
       </li>
     `).join('');
-
-    // Editar
-    document.querySelectorAll('.edit-res-btn').forEach(btn => {
-      btn.onclick = () => {
-        const li = btn.closest('li');
-        const id = li.dataset.id;
-        const r = data.find(x => x._id === id);
-        document.getElementById('res-id').value = id;
-        document.getElementById('res-event').value = r.event;
-        document.getElementById('res-date').value = r.date.slice(0, 10);
-        document.getElementById('res-first').value = r.first;
-        document.getElementById('res-second').value = r.second;
-        document.getElementById('res-third').value = r.third;
-        document.getElementById('res-submit-btn').innerText = 'Actualizar';
-      };
-    });
-
-    // Borrar
-    document.querySelectorAll('.delete-res-btn').forEach(btn => {
-      btn.onclick = async () => {
-        const id = btn.closest('li').dataset.id;
-        if (!confirm('¿Eliminar este resultado?')) return;
-        await fetch(`${API}/results/${id}`, { method: 'DELETE' });
-        loadResults();
-      };
-    });
-  } catch (err) {
-    console.error('Error loadResults()', err);
+  } catch {
+    resultsList.innerHTML = `<li style="color:red">Error resultados</li>`;
   }
 }
 
 async function handleResultsFormSubmit(e) {
   e.preventDefault();
-  const id = document.getElementById('res-id').value;
   const body = {
-    event: document.getElementById('res-event').value.trim(),
-    date: document.getElementById('res-date').value,
-    first: document.getElementById('res-first').value.trim(),
-    second: document.getElementById('res-second').value.trim(),
-    third: document.getElementById('res-third').value.trim()
+    event: resEventInput.value.trim(),
+    date: resDateInput.value,
+    first: resFirstInput.value.trim(),
+    second: resSecondInput.value.trim(),
+    third: resThirdInput.value.trim()
   };
-  const opts = {
-    method: id ? 'PUT' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  };
-  const url = `${API}/results${id ? '/' + id : ''}`;
-  const res = await fetch(url, opts);
-  if (!res.ok) return alert('Error guardando resultado');
-  document.getElementById('results-form').reset();
-  document.getElementById('res-submit-btn').innerText = 'Crear / Actualizar';
-  loadResults();
+  const url    = editResId ? `${API}/results/${editResId}` : `${API}/results`;
+  const method = editResId ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    editResId = null;
+    resultsForm.reset();
+    resSubmitBtn.innerText = 'Crear / Actualizar';
+    loadResults();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
 
-// ==== Inicialización de toolbar y listeners de Blog ====
-window.addEventListener('DOMContentLoaded', () => {
-  // 1) Formatea el contenido en el editor
-  document.querySelectorAll('#blog-toolbar button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cmd = btn.dataset.cmd;
-      document.execCommand(cmd, false, null);
-      document.getElementById('blog-content-editor').focus();
-    });
-  });
-
-  // 2) Listener para el formulario de Blog
-  document.getElementById('blog-form')
-    .addEventListener('submit', handleBlogFormSubmit);
-
-  // 3) Carga inicial de entradas
-  loadBlog();
+resultsList.addEventListener('click', async e => {
+  const btn = e.target; const li = btn.closest('li'); if (!li) return;
+  const id = li.dataset.id;
+  if (btn.matches('.delete-btn')) {
+    if (!confirm('¿Eliminar resultado?')) return;
+    await fetch(`${API}/results/${id}`, { method: 'DELETE' });
+    return loadResults();
+  }
+  if (btn.matches('.edit-btn')) {
+    const data = await (await fetch(`${API}/results`)).json();
+    const r = data.find(x => x._id === id);
+    editResId = id;
+    resEventInput.value  = r.event;
+    resDateInput.value   = r.date.slice(0,10);
+    resFirstInput.value  = r.first;
+    resSecondInput.value = r.second;
+    resThirdInput.value  = r.third;
+    resSubmitBtn.innerText = 'Actualizar';
+  }
 });
 
-// ——— Blog CRUD ——— //
+// --- Noticias ---
+let editNewsId = null;
+const newsForm        = document.getElementById('news-form');
+const newsList        = document.getElementById('news-list');
+const newsTitleInput  = document.getElementById('news-title');
+const newsDateInput   = document.getElementById('news-date');
+const newsDescInput   = document.getElementById('news-description');
+const newsSubmitBtn   = document.getElementById('news-submit-btn');
+const bulkNewsBtn     = document.getElementById('bulk-news-btn');
+const bulkNewsStatus  = document.getElementById('bulk-news-status');
 
-// Carga y renderizado de las entradas de Blog
+async function loadNews() {
+  try {
+    const res = await fetch(`${API}/news`);
+    const data = await res.json();
+    newsList.innerHTML = data.map(n => `
+      <li data-id="${n._id}">
+        <strong>${n.title}</strong>
+        <small>${new Date(n.date).toLocaleDateString()}</small>
+        <p>${n.description}</p>
+        <button class="edit-btn">Editar</button>
+        <button class="delete-btn">Eliminar</button>
+      </li>
+    `).join('');
+  } catch {
+    newsList.innerHTML = `<li style="color:red">Error noticias</li>`;
+  }
+}
+
+async function handleNewsFormSubmit(e) {
+  e.preventDefault();
+  const payload = {
+    title: newsTitleInput.value.trim(),
+    date: newsDateInput.value,
+    description: newsDescInput.value.trim()
+  };
+  const url = editNewsId ? `${API}/news/${editNewsId}` : `${API}/news`;
+  const method = editNewsId ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    editNewsId = null;
+    newsForm.reset();
+    newsSubmitBtn.innerText = 'Crear / Actualizar';
+    await loadNews();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+newsList.addEventListener('click', async e => {
+  const btn = e.target;
+  const li = btn.closest('li');
+  if (!li) return;
+  const id = li.dataset.id;
+  
+  if (btn.matches('.delete-btn')) {
+    if (!confirm('¿Eliminar esta noticia?')) return;
+    await fetch(`${API}/news/${id}`, { method: 'DELETE' });
+    return loadNews();
+  }
+  
+  if (btn.matches('.edit-btn')) {
+    const n = (await fetch(`${API}/news`)).json().then(arr => arr.find(x=>x._id===id));
+    editNewsId = id;
+    newsTitleInput.value = (await n).title;
+    newsDateInput.value = (await n).date.slice(0,10);
+    newsDescInput.value = (await n).description;
+    newsSubmitBtn.innerText = 'Actualizar';
+  }
+});
+
+bulkNewsBtn.addEventListener('click', async ()=>{
+  const inp = document.getElementById('news-excel'); if(!inp.files.length)return;
+  const buf = await inp.files[0].arrayBuffer();
+  const wb = XLSX.read(buf,{type:'array'});
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  bulkNewsStatus.textContent='Importando...';
+  try {
+    const res = await fetch(`${API}/news/bulk`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)
+    });
+    if(!res.ok) throw new Error(await res.text());
+    bulkNewsStatus.textContent='Importación exitosa 🎉';
+    loadNews();
+  } catch(e){ bulkNewsStatus.textContent='Error: '+e.message; }
+});
+
+// --- Blog ---
+let editBlogId = null;
+const blogForm           = document.getElementById('blog-form');
+const blogList           = document.getElementById('blog-list');
+const blogTitleInput     = document.getElementById('blog-title');
+const blogDateInput      = document.getElementById('blog-date');
+const blogBannerInput    = document.getElementById('blog-banner');
+const blogContentEditor  = document.getElementById('blog-content-editor');
+const blogSubmitBtn      = document.getElementById('blog-submit-btn');
+const blogImagesInput    = document.getElementById('blog-images');
+
+// toolbar for blog
+document.querySelectorAll('#blog-toolbar button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.execCommand(btn.dataset.cmd,false,null);
+    blogContentEditor.focus();
+  });
+});
+
 async function loadBlog() {
   try {
     const res = await fetch(`${API}/blog`);
     const data = await res.json();
-    const list = document.getElementById('blog-list');
-
-    list.innerHTML = data.map(b => `
+    blogList.innerHTML = data.map(b=>`
       <li data-id="${b._id}">
         <div class="blog-preview-images">
-          ${b.banner
-        ? `<img src="${b.banner}" alt="Banner" width="150">`
-        : ''
-      }
-          ${b.images.map(url =>
-        `<img src="${url}" alt="" width="80">`
-      ).join('')}
+          ${b.banner?`<img src="${b.banner}" width="150">`:''}
+          ${b.images.map(u=>`<img src="${u}" width="80">`).join('')}
         </div>
         <div class="blog-info">
           <strong>${b.title}</strong><br>
           <small>${new Date(b.date).toLocaleDateString()}</small>
-          <div class="blog-excerpt">
-            ${b.content.substring(0, 100)}...
-          </div>
+          <div class="blog-excerpt">${b.content.substring(0,100)}...</div>
         </div>
         <div class="blog-actions">
-          <button class="edit-blog-btn">Editar</button>
-          <button class="delete-blog-btn">Eliminar</button>
+          <button class="edit-btn">Editar</button>
+          <button class="delete-btn">Eliminar</button>
         </div>
       </li>
     `).join('');
-
-    // Editar: vuelca datos al formulario y al editor
-    document.querySelectorAll('.edit-blog-btn').forEach(btn => {
-      btn.onclick = () => {
-        const li = btn.closest('li');
-        const id = li.dataset.id;
-        const b = data.find(x => x._id === id);
-
-        document.getElementById('blog-id').value = id;
-        document.getElementById('blog-title').value = b.title;
-        document.getElementById('blog-date').value = b.date.slice(0, 10);
-        document.getElementById('blog-content-editor').innerHTML = b.content;
-        // Nota: no podemos prellenar input type="file", pero podrías mostrar un preview:
-        const prev = document.getElementById('blog-banner-preview');
-        if (prev) prev.src = b.banner || '';
-        document.getElementById('blog-submit-btn').innerText = 'Actualizar';
-      };
-    });
-
-    // Borrar
-    document.querySelectorAll('.delete-blog-btn').forEach(btn => {
-      btn.onclick = async () => {
-        const id = btn.closest('li').dataset.id;
-        if (!confirm('¿Eliminar esta entrada?')) return;
-        await fetch(`${API}/blog/${id}`, { method: 'DELETE' });
-        loadBlog();
-      };
-    });
-
-  } catch (err) {
-    console.error('Error loadBlog()', err);
+  } catch {
+    blogList.innerHTML = `<li style="color:red">Error blog</li>`;
   }
 }
 
-// Envío del formulario de Blog (banner + imágenes + editor)
 async function handleBlogFormSubmit(e) {
   e.preventDefault();
+  const fd = new FormData();
+  fd.append('title', blogTitleInput.value.trim());
+  fd.append('date', blogDateInput.value);
+  fd.append('content', blogContentEditor.innerHTML.trim());
+  if (blogBannerInput.files[0]) fd.append('banner', blogBannerInput.files[0]);
+  Array.from(blogImagesInput.files).forEach(f=>fd.append('images',f));
 
-  // 1) Recoge el HTML del editor
-  const htmlContent = document
-    .getElementById('blog-content-editor')
-    .innerHTML
-    .trim();
-
-  // 2) Prepara FormData
-  const id = document.getElementById('blog-id').value;
-  const form = new FormData();
-  form.append('title', document.getElementById('blog-title').value.trim());
-  form.append('date', document.getElementById('blog-date').value);
-  form.append('content', htmlContent);
-
-  // 3) Banner (solo uno)
-  const bannerInput = document.getElementById('blog-banner');
-  if (bannerInput.files.length > 0) {
-    form.append('banner', bannerInput.files[0]);
-  }
-
-  // 4) Imágenes del artículo (varias)
-  const files = document.getElementById('blog-images').files;
-  for (const file of files) {
-    form.append('images', file);
-  }
-
-  
-  // 5) POST o PUT
-  const url = `${API}/blog${id ? '/' + id : ''}`;
-  const opts = { method: id ? 'PUT' : 'POST', body: form };
-  const res = await fetch(url, opts);
-
-  // 6) Reset y recarga
-  if (res.status === 201 || res.ok) {
-    document.getElementById('blog-form').reset();
-    document.getElementById('blog-content-editor').innerHTML = '';
-    document.getElementById('blog-submit-btn').innerText = 'Crear / Actualizar';
+  const url = editBlogId ? `${API}/blog/${editBlogId}` : `${API}/blog`;
+  const method = editBlogId ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url,{method,body:fd});
+    if(!res.ok) throw new Error(await res.text());
+    editBlogId = null;
+    blogForm.reset();
+    blogSubmitBtn.innerText='Crear / Actualizar';
+    blogContentEditor.innerHTML='';
     loadBlog();
-  } else {
-    console.error('Error guardando Blog:', res.status, res.statusText);
-    alert(`Error guardando Blog (${res.status})`);
-  }
+  } catch(err){ alert('Error blog: '+err.message); }
 }
+
+blogList.addEventListener('click', async e=>{
+  const btn = e.target; const li = btn.closest('li'); if(!li) return;
+  const id = li.dataset.id;
+  if(btn.matches('.delete-btn')){
+    if(!confirm('¿Eliminar entrada?')) return;
+    await fetch(`${API}/blog/${id}`,{method:'DELETE'});
+    return loadBlog();
+  }
+  if(btn.matches('.edit-btn')){
+    const b = await (await fetch(`${API}/blog/${id}`)).json();
+    editBlogId = id;
+    blogTitleInput.value=b.title;
+    blogDateInput.value=b.date.slice(0,10);
+    blogContentEditor.innerHTML=b.content;
+    blogSubmitBtn.innerText='Actualizar';
+  }
+});
 
 // ——— Hero CRUD ——— //
 
@@ -791,32 +716,45 @@ document.getElementById('hero-form').addEventListener('submit', async e => {
   }
 });
 
-
-
-
-// Cuando el DOM esté listo, registra listeners
+// ===================
+// Inicialización global
+// ===================
 window.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ admin.js cargado');
-  document.getElementById('team-form').addEventListener('submit', handleFormSubmit);
-  document.getElementById('bulk-upload-btn').addEventListener('click', handleBulkUpload);
-  document.getElementById('event-form').addEventListener('submit', handleEventFormSubmit);
-  document.getElementById('bulk-events-btn').addEventListener('click', handleBulkEvents);
-  document.getElementById('news-form').addEventListener('submit', handleNewsFormSubmit);
-  document.getElementById('bulk-news-btn').addEventListener('click', handleBulkNews);
-  document.getElementById('gallery-form').addEventListener('submit', handleGalleryFormSubmit);
-  document.getElementById('info-form').addEventListener('submit', handleInfoFormSubmit);
-  document.getElementById('positions-form').addEventListener('submit', handlePositionsFormSubmit);
-  document.getElementById('results-form').addEventListener('submit', handleResultsFormSubmit);
-  document.getElementById('bulk-positions-btn').addEventListener('click', handleBulkPositionsUpload);
-  document.getElementById('blog-form').addEventListener('submit', handleBlogFormSubmit);
+  // Equipos
+  teamForm.addEventListener('submit', handleTeamFormSubmit);
   loadTeams();
+
+  // Eventos
+  eventForm.addEventListener('submit', handleEventFormSubmit);
   loadEvents();
-  loadNews();
+  // Eventos bulk
+  document.getElementById('bulk-events-btn').addEventListener('click', handleBulkEvents);
+
+  // Galería
+  galleryForm.addEventListener('submit', handleGalleryFormSubmit);
   loadGallery();
+
+  // Info
+  infoForm.addEventListener('submit', handleInfoFormSubmit);
   loadInfo();
+
+  // Posiciones
+  positionsForm.addEventListener('submit', handlePositionsFormSubmit);
   loadPositions();
-  loadPositions();
+  // Posiciones bulk
+  document.getElementById('bulk-positions-btn').addEventListener('click', handleBulkPositionsUpload);
+
+  // Resultados
+  resultsForm.addEventListener('submit', handleResultsFormSubmit);
   loadResults();
+
+  // Blog
+  blogForm .addEventListener('submit', handleBlogFormSubmit);
   loadBlog();
-  loadHero();
+
+   // Noticias
+  newsForm .addEventListener('submit', handleNewsFormSubmit);
+  loadNews();
+
+   loadHero();
 });
