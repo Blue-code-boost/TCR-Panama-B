@@ -824,3 +824,25 @@ form button:hover { background: #007acc; }
 .delete-btn:hover {
   opacity: 0.8;
 }
+
+.admin-countdown {
+  background: #333;
+  color: #fff;
+  padding: 20px;
+  margin: 20px;
+  border-radius: 8px;
+}
+.admin-countdown .countdown-config {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.admin-countdown .countdown-preview {
+  display: flex;
+  gap: 20px;
+  font-size: 1.2rem;
+}
+.admin-countdown .countdown-preview div {
+  text-align: center;
+}

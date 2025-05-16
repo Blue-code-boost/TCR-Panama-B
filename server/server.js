@@ -17,6 +17,7 @@ const Info     = require('./models/info');
 const Blog     = require('./models/blog');
 const Position = require('./models/position');
 const Result   = require('./models/result');
+const Countdown = require('./models/countdown');
 // Modelo Hero
 const Hero = require('./models/hero');
 
@@ -107,6 +108,29 @@ app.put('/hero/:id', heroUpload.single('image'), async (req, res) => {
   }
 });
 
+// GET /countdown → devuelve la única configuración de countdown
+app.get('/countdown', async (req, res) => {
+  let cfg = await Countdown.findOne();
+  if (!cfg) {
+    // Si no existe todavía, creamos una con fecha por defecto
+    cfg = await Countdown.create({ target: new Date() });
+  }
+  res.json({ target: cfg.target });
+});
+
+// PUT /countdown → actualiza la fecha objetivo
+app.put('/countdown', express.json(), async (req, res) => {
+  const { target } = req.body;
+  if (!target) return res.status(400).json({ error: 'Falta target' });
+  let cfg = await Countdown.findOne();
+  if (!cfg) {
+    cfg = await Countdown.create({ target });
+  } else {
+    cfg.target = target;
+    await cfg.save();
+  }
+  res.json({ target: cfg.target });
+});
 // Conexión a MongoDB y arranque del servidor
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
@@ -137,6 +161,8 @@ app.use(express.static(path.join(__dirname)));
 
 // Middleware para procesar solicitudes JSON
 app.use(express.json());
+
+
 
 // Storage Multer para imágenes de Team
 const teamStorage = multer.diskStorage({

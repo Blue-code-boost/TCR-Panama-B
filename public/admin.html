@@ -61,6 +61,25 @@
       </form>
       <div id="hero-preview" class="hero-preview"></div>
     </section>
+
+ <section class="countdown-admin">
+  <h2>Countdown</h2>
+  <label>
+    Fecha y hora objetivo:
+    <input type="datetime-local" id="countdown-target">
+  </label>
+  <button id="countdown-save-btn">Guardar</button>
+  <span id="countdown-status"></span>
+
+  <div id="countdown-preview" style="margin-top:20px;">
+    <strong>Días:</strong>    <span id="preview-days">00</span>
+    <strong>Horas:</strong>   <span id="preview-hours">00</span>
+    <strong>Minutos:</strong> <span id="preview-minutes">00</span>
+    <strong>Segundos:</strong><span id="preview-seconds">00</span>
+  </div>
+</section>
+
+
     <!-- Sección Equipos -->
     <section id="teams">
       <h2>Gestionar Equipos</h2>

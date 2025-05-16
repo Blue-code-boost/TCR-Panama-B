@@ -716,6 +716,47 @@ document.getElementById('hero-form').addEventListener('submit', async e => {
   }
 });
 
+// ——— Countdown ADMIN ———
+let countdownTarget = null;
+
+// Guarda la fecha en el servidor
+async function saveCountdown() {
+  const inp = document.getElementById('countdown-target');
+  if (!inp.value) return alert('Selecciona fecha y hora');
+  const iso = new Date(inp.value).toISOString();
+  try {
+    const res = await fetch(`${API}/countdown`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: iso })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const { target } = await res.json();
+    countdownTarget = new Date(target).getTime();
+    document.getElementById('countdown-status').textContent = '✅ Guardado';
+  } catch (err) {
+    document.getElementById('countdown-status').textContent = '❌ ' + err.message;
+  }
+}
+
+// Renderiza el preview en el admin
+function updateAdminCountdown() {
+  if (!countdownTarget) return;
+  const diff = countdownTarget - Date.now();
+  if (diff <= 0) return; // expirado
+
+  const days    = Math.floor(diff / 86400000);
+  const hours   = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000)  / 60000);
+  const seconds = Math.floor((diff % 60000)    / 1000);
+
+  document.getElementById('preview-days').textContent    = String(days).padStart(2,'0');
+  document.getElementById('preview-hours').textContent   = String(hours).padStart(2,'0');
+  document.getElementById('preview-minutes').textContent = String(minutes).padStart(2,'0');
+  document.getElementById('preview-seconds').textContent = String(seconds).padStart(2,'0');
+}
+
+
 // ===================
 // Inicialización global
 // ===================
@@ -757,4 +798,24 @@ window.addEventListener('DOMContentLoaded', () => {
   loadNews();
 
    loadHero();
+
+
+ // 1) Listener del botón
+  document.getElementById('countdown-save-btn')
+    .addEventListener('click', saveCountdown);
+
+  // 2) Carga inicial desde el servidor
+  fetch(`${API}/countdown`)
+    .then(r => r.json())
+    .then(cfg => {
+      countdownTarget = new Date(cfg.target).getTime();
+      document.getElementById('countdown-target').value =
+        new Date(cfg.target).toISOString().slice(0,16);
+    })
+    .catch(console.error)
+    .finally(() => {
+      // 3) Arranca el preview
+      updateAdminCountdown();
+      setInterval(updateAdminCountdown, 1000);
+    });
 });

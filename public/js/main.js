@@ -1,22 +1,42 @@
 const API = 'http://localhost:3000';
+let countdownTarget;
 
-// ——— Countdown protegido ———
-function updateCountdown() {
-  const daysEl    = document.getElementById("days");
-  const hoursEl   = document.getElementById("hours");
-  const minutesEl = document.getElementById("minutes");
-  const secondsEl = document.getElementById("seconds");
-  if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
-
-  const target = new Date("2025-06-15T12:00:00").getTime();
-  const now    = Date.now();
-  const diff   = target - now;
-
-  daysEl.innerText    = String(Math.floor(diff / 86400000)).padStart(2,'0');
-  hoursEl.innerText   = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
-  minutesEl.innerText = String(Math.floor((diff % 3600000)  / 60000)).padStart(2,'0');
-  secondsEl.innerText = String(Math.floor((diff % 60000)    / 1000)).padStart(2,'0');
+// carga dinámica
+async function initCountdown() {
+  try {
+    const res = await fetch('/countdown');
+    const { target } = await res.json();
+    countdownTarget = new Date(target).getTime();
+  } catch {
+    countdownTarget = new Date("2025-06-15T12:00:00").getTime();
+  }
 }
+
+function updateCountdown() {
+  if (!countdownTarget) return;
+  const now  = Date.now();
+  const diff = countdownTarget - now;
+  if (diff < 0) return;
+  document.getElementById("days").innerText    =
+    String(Math.floor(diff / 86400000)).padStart(2,'0');
+  document.getElementById("hours").innerText   =
+    String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
+  document.getElementById("minutes").innerText =
+    String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+  document.getElementById("seconds").innerText =
+    String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById("days")) {
+    initCountdown().then(() => {
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    });
+  }
+  // … resto de tu init …
+});
+
 
 // ——— Hero público ———
 async function loadPublicHero() {
@@ -360,6 +380,8 @@ async function loadTeamsPublic() {
 }
 
 
+
+
 // ——— Punto de entrada único ———
 document.addEventListener('DOMContentLoaded', () => {
   loadPublicHero();
@@ -377,5 +399,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('blog-list'))       loadBlog();
   if (document.getElementById('blog-post'))       loadBlogPost();
   if(document.getElementById('teams-container')) loadTeamsPublic();
-
+  if (document.getElementById("days")) {
+  // en lugar del hard-code:
+  fetch('/countdown')
+    .then(r => r.json())
+    .then(cfg => {
+      publicCountdownTarget = new Date(cfg.target).getTime();
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    })
+    .catch(err => console.error('countdown fetch:', err));
+}
 });
